@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejador CGU — AFFC Auditoria e Fiscalização</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TEMA ── */
+:root{
+  --bg:#0f1117;--bg2:#161922;--bg3:#1e2330;--bg4:#252b3b;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#e8eaf0;--text2:#8b90a0;--text3:#555b6e;
+  --accent:#3ecf8e;--accent2:#2ba870;
+  --amber:#f5a623;--red:#e05252;--blue:#4a90d9;--purple:#7c6af7;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--r:8px;--r2:12px;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+[data-theme="light"]{
+  --bg:#f4f5f7;--bg2:#ffffff;--bg3:#f0f1f3;--bg4:#e4e6ea;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --text:#1a1d23;--text2:#5a6070;--text3:#9aa0ae;
+  --shadow:0 4px 24px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;transition:background .2s,color .2s}
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;overflow-y:auto;transition:background .2s}
+.sidebar-logo{padding:0 16px 16px;border-bottom:1px solid var(--border);margin-bottom:12px}
+.sidebar-logo .title{font-size:14px;font-weight:600;letter-spacing:-.3px}
+.sidebar-logo .sub{font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--mono);line-height:1.4}
+.nav-section{padding:0 10px;margin-bottom:2px}
+.nav-label{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);padding:6px 8px 3px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;font-weight:400;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(62,207,142,.12);color:var(--accent);font-weight:500}
+.nav-item .icon{font-size:14px;width:16px;text-align:center}
+.nav-streak{font-size:9px;background:rgba(245,166,35,.15);color:var(--amber);border-radius:8px;padding:1px 5px;font-family:var(--mono);margin-left:auto}
+.main{flex:1;overflow-y:auto;background:var(--bg);transition:background .2s}
+.page{display:none;padding:22px 26px;max-width:1400px}
+.page.active{display:block}
+.page-header{margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.page-header-left h1{font-size:19px;font-weight:600;letter-spacing:-.4px}
+.page-header-left p{font-size:12px;color:var(--text2);margin-top:2px}
+.page-header-right{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:15px 18px;margin-bottom:14px;transition:background .2s}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;gap:8px;flex-wrap:wrap}
+.card-title{font-size:13px;font-weight:500}
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+/* ── METRICS ── */
+.metric{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;transition:background .2s}
+.metric .m-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.metric .m-val{font-size:22px;font-weight:600;font-family:var(--mono);letter-spacing:-1px}
+.metric .m-sub{font-size:10px;color:var(--text3);margin-top:2px}
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{padding:7px 9px;text-align:left;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg2)}
+td{padding:6px 9px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+[data-theme="light"] tr:hover td{background:rgba(0,0,0,.02)}
+tfoot td{border-top:1px solid var(--border);border-bottom:none;color:var(--text);font-weight:500}
+.mat-row td{background:var(--bg3);border-top:1px solid var(--border2)}
+.mat-name{font-weight:600;font-size:12px;color:var(--text);text-transform:uppercase;letter-spacing:.4px}
+/* ── FORMS ── */
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:12.5px;padding:4px 7px;width:100%;outline:none;transition:border-color .15s,background .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--accent)}
+label.lbl{font-size:10px;color:var(--text3);display:block;margin-bottom:2px;letter-spacing:.3px}
+/* ── BUTTONS ── */
+.btn{padding:5px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--font);font-size:12.5px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn-primary{background:var(--accent);color:#0a1a12;border-color:var(--accent2);font-weight:500}
+.btn-primary:hover{background:var(--accent2);color:#fff}
+.btn-danger{color:var(--red);border-color:rgba(224,82,82,.25);background:transparent}
+.btn-danger:hover{background:rgba(224,82,82,.1)}
+.btn-warn{color:var(--amber);border-color:rgba(245,166,35,.3);background:transparent}
+.btn-warn:hover{background:rgba(245,166,35,.1)}
+.btn-sm{padding:3px 8px;font-size:11px}
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 6px;border-radius:20px;font-size:10px;font-weight:500;font-family:var(--mono)}
+.b-green{background:rgba(62,207,142,.15);color:var(--accent)}
+.b-amber{background:rgba(245,166,35,.15);color:var(--amber)}
+.b-red{background:rgba(224,82,82,.15);color:var(--red)}
+.b-blue{background:rgba(74,144,217,.15);color:var(--blue)}
+.b-gray{background:var(--bg4);color:var(--text2)}
+.b-purple{background:rgba(124,106,247,.15);color:var(--purple)}
+/* ── PROGRESS ── */
+.prog-bar{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s;background:var(--accent)}
+/* ── ALERT ROW ── */
+.row-alert td{background:rgba(224,82,82,.07)!important}
+.row-alert td:first-child{border-left:2px solid var(--red)}
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.tab-btn{padding:4px 10px;border:1px solid transparent;border-radius:var(--r);background:none;color:var(--text2);font-family:var(--font);font-size:11px;cursor:pointer}
+.tab-btn:hover{background:var(--bg3);color:var(--text)}
+.tab-btn.active{background:var(--bg3);color:var(--text);border-color:var(--border2);font-weight:500}
+/* ── CRONÔMETRO ── */
+.chrono-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.chrono-display{font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-2px;color:var(--accent);min-width:125px}
+.chrono-display.running{color:var(--amber)}
+/* ── HEATMAP ── */
+.heatmap-wrap{display:flex;gap:3px;flex-wrap:wrap}
+.heatmap-day{width:12px;height:12px;border-radius:2px;background:var(--bg4);cursor:pointer;transition:transform .1s}
+.heatmap-day:hover{transform:scale(1.3)}
+.hm-0{background:var(--bg4)}
+.hm-1{background:rgba(62,207,142,.25)}
+.hm-2{background:rgba(62,207,142,.5)}
+.hm-3{background:rgba(62,207,142,.75)}
+.hm-4{background:rgba(62,207,142,1)}
+.heatmap-months{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.heatmap-month-label{font-size:9px;color:var(--text3);font-family:var(--mono)}
+/* ── SIMULADO ── */
+.simulado-question{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.simulado-countdown{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--amber)}
+.simulado-countdown.urgent{color:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* ── CICLO BUILDER ── */
+.ciclo-slot{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;margin-bottom:7px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ciclo-slot-type{font-size:11px;font-weight:500;padding:2px 7px;border-radius:12px;white-space:nowrap}
+.type-teoria{background:rgba(74,144,217,.15);color:var(--blue)}
+.type-questoes{background:rgba(245,166,35,.15);color:var(--amber)}
+.type-revisao{background:rgba(62,207,142,.15);color:var(--accent)}
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:22px;max-width:480px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:14px}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+/* ── PRIORITY ── */
+.priority-item{background:var(--bg3);border-left:3px solid var(--accent);border-radius:0 var(--r) var(--r) 0;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.priority-item.p-alta{border-color:var(--red)}
+.priority-item.p-media{border-color:var(--amber)}
+.priority-item.p-baixa{border-color:var(--accent)}
+/* ── META DIARIA ── */
+.meta-ring{position:relative;width:80px;height:80px}
+.meta-ring svg{transform:rotate(-90deg)}
+.meta-ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;font-weight:600}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+/* ── STREAK BANNER ── */
+.streak-banner{background:linear-gradient(135deg,rgba(245,166,35,.15),rgba(245,166,35,.05));border:1px solid rgba(245,166,35,.3);border-radius:var(--r2);padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
+/* ── RESPONSIVE ── */
+@media(max-width:900px){.sidebar{width:52px;min-width:52px}.sidebar-logo,.nav-label,.nav-item span,.nav-streak{display:none}.nav-item{justify-content:center;padding:9px}.page{padding:14px 10px}.g4,.g5{grid-template-columns:1fr 1fr}.g2,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="title">Planejador CGU</div>
+    <div class="sub">AFFC · Auditoria e Fiscalização</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Visão Geral</div>
+    <button class="nav-item active" onclick="showPage('inicio')"><span class="icon">🏠</span><span>Início</span></button>
+    <button class="nav-item" onclick="showPage('horas')"><span class="icon">⏱</span><span>Horas de Estudo</span></button>
+    <button class="nav-item" onclick="showPage('simulado')"><span class="icon">🧪</span><span>Simulado</span></button>
+    <button class="nav-item" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Edital</div>
+    <button class="nav-item" onclick="showPage('edital')"><span class="icon">📋</span><span>Mapa do Edital</span></button>
+    <button class="nav-item" onclick="showPage('metas')"><span class="icon">🎯</span><span>Metas</span></button>
+    <button class="nav-item" onclick="showPage('prioridade')"><span class="icon">⚡</span><span>Prioridades</span></button>
+    <button class="nav-item" onclick="showPage('ciclobuilder')"><span class="icon">🔄</span><span>Ciclo de Estudos</span></button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Sessão</div>
+    <button class="nav-item" onclick="showPage('teoria')"><span class="icon">📖</span><span>Teoria</span></button>
+    <button class="nav-item" onclick="showPage('questoes')"><span class="icon">✏️</span><span>Questões</span></button>
+    <button class="nav-item" onclick="showPage('revisao')"><span class="icon">🔁</span><span>Revisão</span></button>
+    <button class="nav-item" onclick="showPage('ciclos')"><span class="icon">📁</span><span>Histórico de Ciclos</span></button>
+  </div>
+  <div style="margin-top:auto;padding:10px 12px;border-top:1px solid var(--border)">
+    <button class="btn btn-sm" onclick="toggleTheme()" style="width:100%;justify-content:center;display:flex;gap:6px" id="theme-btn">☀️ Modo claro</button>
+  </div>
+</nav>
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+<!-- ══════ INÍCIO ══════ -->
+<div class="page active" id="page-inicio">
+  <div class="page-header">
+    <div class="page-header-left"><h1>Início</h1><p>CGU — AFFC Auditoria e Fiscalização · FGV · 110 questões</p></div>
+    <div class="page-header-right" style="align-items:center">
+      <button class="btn" onclick="exportData()">⬆ Exportar</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">⬇ Importar</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+      <button class="btn btn-primary" onclick="saveAll()">💾 Salvar</button>
+    </div>
+  </div>
+  <!-- RESUMO DO DIA -->
+  <div id="resumo-dia" class="card" style="margin-bottom:14px"></div>
+  <!-- STREAK -->
+  <div class="streak-banner" id="streak-banner">
+    <div style="font-size:28px">🔥</div>
+    <div>
+      <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--amber)" id="streak-num">0</div>
+      <div style="font-size:12px;color:var(--text2)">dias consecutivos estudando</div>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:11px;color:var(--text3)">Meta diária</div>
+      <div style="font-family:var(--mono);font-weight:600" id="streak-meta-disp">0h / 0h</div>
+    </div>
+  </div>
+  <!-- METRICS -->
+  <div class="g4" style="margin-bottom:14px" id="inicio-metrics"></div>
+  <!-- PROVAS A FAZER -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Provas a Fazer</div><button class="btn btn-sm btn-primary" onclick="addProvaFazer()">+ Adicionar</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Data Prevista</th><th>Situação</th><th>Órgão</th><th>Cargo</th><th>Nível</th><th>Banca</th><th>Prazo Inscrição</th><th>Prazo Pagamento</th><th>Pago?</th><th>Dias</th><th></th></tr></thead><tbody id="tbody-fazer"></tbody></table></div>
+  </div>
+  <!-- PROVAS REALIZADAS -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Provas Realizadas</div><button class="btn btn-sm btn-primary" onclick="addProvaFeita()">+ Adicionar</button></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Órgão</th><th>Cargo</th><th>Nível</th><th>Banca</th><th>Tipo</th><th>Acertos</th><th>Total</th><th>%</th><th>Situação</th><th>Minha Pos.</th><th>Pos. nas Vagas</th><th></th></tr></thead><tbody id="tbody-feitas"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════ HORAS ══════ -->
+<div class="page" id="page-horas">
+  <div class="page-header"><div class="page-header-left"><h1>Horas de Estudo</h1><p>Controle suas sessões e acompanhe a evolução</p></div></div>
+  <!-- CRONÔMETRO -->
+  <div class="chrono-wrap">
+    <div>
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Cronômetro</div>
+      <div class="chrono-display" id="chrono-display">00:00:00</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-primary" id="chrono-btn" onclick="toggleChrono()">▶ Iniciar</button>
+        <button class="btn" onclick="resetChrono()">↺ Zerar</button>
+      </div>
+      <div id="chrono-finalizar" style="display:none;gap:7px;align-items:center;flex-wrap:wrap">
+        <select id="chrono-mat" style="width:135px"><option value="">Matéria...</option></select>
+        <select id="chrono-tipo" style="width:115px"><option value="teoria">📖 Teoria</option><option value="questoes">✏️ Questões</option><option value="revisao">🔁 Revisão</option></select>
+        <button class="btn btn-primary" onclick="finalizarChrono()">✓ Registrar</button>
+      </div>
+    </div>
+    <!-- META DIÁRIA RING -->
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Meta diária</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" id="meta-horas-dia" placeholder="2" style="width:55px" onchange="salvarMetaDiaria()" min="0" max="24">
+          <span style="font-size:12px;color:var(--text2)">h/dia</span>
+        </div>
+      </div>
+      <div class="meta-ring" id="meta-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="32" fill="none" stroke="var(--bg4)" stroke-width="8"/>
+          <circle cx="40" cy="40" r="32" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="201" id="meta-ring-arc"/>
+        </svg>
+        <div class="meta-ring-label"><span id="meta-ring-pct" style="color:var(--accent)">0%</span><span style="font-size:9px;color:var(--text3)">hoje</span></div>
+      </div>
+    </div>
+  </div>
+  <!-- METRICS -->
+  <div class="g4" style="margin-bottom:12px">
+    <div class="metric"><div class="m-label">Hoje</div><div class="m-val" id="m-hoje">0h</div></div>
+    <div class="metric"><div class="m-label">Esta Semana</div><div class="m-val" id="m-semana">0h</div></div>
+    <div class="metric"><div class="m-label">Este Mês</div><div class="m-val" id="m-mes">0h</div></div>
+    <div class="metric"><div class="m-label">Total Geral</div><div class="m-val" id="m-total">0h</div></div>
+  </div>
+  <!-- MAPA DE CALOR -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Mapa de Calor — Últimos 6 meses</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3)">
+        Menos <div style="display:flex;gap:2px;align-items:center">
+          <div style="width:10px;height:10px;border-radius:2px" class="hm-0"></div>
+          <div style="width:10px;height:10px;border-radius:2px" class="hm-1"></div>
+          <div style="width:10px;height:10px;border-radius:2px" class="hm-2"></div>
+          <div style="width:10px;height:10px;border-radius:2px" class="hm-3"></div>
+          <div style="width:10px;height:10px;border-radius:2px" class="hm-4"></div>
+        </div> Mais
+      </div>
+    </div>
+    <div id="heatmap-container"></div>
+  </div>
+  <!-- REGISTRAR MANUAL -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Registrar Sessão Manual</div></div>
+    <div style="display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap">
+      <div style="flex:1;min-width:110px"><label class="lbl">Data</label><input type="date" id="h-data"></div>
+      <div style="flex:1;min-width:140px"><label class="lbl">Matéria</label><select id="h-materia"><option value="">Selecione...</option></select></div>
+      <div style="flex:1;min-width:100px"><label class="lbl">Tipo</label><select id="h-tipo"><option value="teoria">📖 Teoria</option><option value="questoes">✏️ Questões</option><option value="revisao">🔁 Revisão</option><option value="geral">📚 Geral</option></select></div>
+      <div style="flex:1;min-width:90px"><label class="lbl">Duração (ex: 1:30)</label><input type="text" id="h-horas" placeholder="1:30"></div>
+      <button class="btn btn-primary" onclick="addHora()">Registrar</button>
+    </div>
+  </div>
+  <!-- HISTÓRICO -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Histórico</div>
+      <div class="tabs" style="margin-bottom:0">
+        <button class="tab-btn active" onclick="filtrarHoras('all',this)">Todos</button>
+        <button class="tab-btn" onclick="filtrarHoras('dia',this)">Por dia</button>
+        <button class="tab-btn" onclick="filtrarHoras('mes',this)">Por mês</button>
+        <button class="tab-btn" onclick="filtrarHoras('materia',this)">Por matéria</button>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Matéria</th><th>Tipo</th><th>Duração</th><th></th></tr></thead><tbody id="tbody-horas"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══════ SIMULADO ══════ -->
+<div class="page" id="page-simulado">
+  <div class="page-header"><div class="page-header-left"><h1>Simulado Cronometrado</h1><p>Monte um simulado com matérias e tempo definidos</p></div></div>
+  <div id="simulado-config">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Configurar Simulado</div>
+      <div class="g3" style="margin-bottom:12px">
+        <div><label class="lbl">Total de questões</label><input type="number" id="sim-qtd" value="110" min="1" max="200"></div>
+        <div><label class="lbl">Tempo total (minutos)</label><input type="number" id="sim-tempo" value="270" min="10" max="600"></div>
+        <div><label class="lbl">Nome do simulado</label><input type="text" id="sim-nome" placeholder="Ex: Simulado #1"></div>
+      </div>
+      <div class="card-title" style="margin-bottom:10px;font-size:12px;color:var(--text2)">Questões por matéria:</div>
+      <div id="sim-materias-config"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-primary" onclick="iniciarSimulado()">▶ Iniciar Simulado</button>
+        <button class="btn" onclick="carregarConfigSimulado()">↺ Usar configuração das Metas</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">Histórico de Simulados</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Nome</th><th>Data</th><th>Questões</th><th>Acertos</th><th>%</th><th>Tempo</th><th></th></tr></thead><tbody id="tbody-simulados"></tbody></table></div>
+    </div>
+  </div>
+  <div id="simulado-ativo" style="display:none">
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div><div style="font-size:10px;color:var(--text3)">Tempo restante</div><div class="simulado-countdown" id="sim-countdown">00:00</div></div>
+        <div><div style="font-size:10px;color:var(--text3)">Questão</div><div style="font-family:var(--mono);font-size:18px;font-weight:600" id="sim-progresso">0/0</div></div>
+        <div style="flex:1"><div class="prog-bar" style="height:8px"><div class="prog-fill" id="sim-prog-bar" style="width:0%"></div></div></div>
+        <button class="btn btn-danger" onclick="encerrarSimulado()">⏹ Encerrar</button>
+      </div>
+    </div>
+    <div class="card" id="sim-gabarito-area">
+      <div class="card-title" style="margin-bottom:12px">Registrar resultados por matéria</div>
+      <div id="sim-gabarito-inputs"></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="salvarSimulado()">✓ Salvar Resultado</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ MAPA DO EDITAL ══════ -->
+<div class="page" id="page-edital">
+  <div class="page-header">
+    <div class="page-header-left"><h1>Mapa do Edital</h1><p>Matérias e tópicos. Teoria, Questões e Revisão refletem automaticamente.</p></div>
+    <div class="page-header-right"><button class="btn btn-sm" onclick="addMateria()">+ Matéria</button><button class="btn btn-sm btn-primary" onclick="addTopico()">+ Tópico</button></div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table id="tbl-edital">
+        <thead>
+          <tr>
+            <th rowspan="2" style="min-width:170px">Matérias / Conteúdos</th>
+            <th rowspan="2" style="min-width:110px">Método</th>
+            <th rowspan="2" style="min-width:140px">Anotações</th>
+            <th colspan="4" style="text-align:center;background:rgba(74,144,217,.1);color:var(--blue)">— Teoria —</th>
+            <th colspan="5" style="text-align:center;background:rgba(245,166,35,.1);color:var(--amber)">— Questões —</th>
+            <th rowspan="2" style="text-align:center;min-width:70px">Total</th>
+            <th rowspan="2" style="text-align:center;min-width:75px">Aprov. %</th>
+            <th rowspan="2"></th>
+          </tr>
+          <tr>
+            <th style="background:rgba(74,144,217,.07);color:var(--blue)">Acertos</th><th style="background:rgba(74,144,217,.07);color:var(--blue)">Erros</th><th style="background:rgba(74,144,217,.07);color:var(--blue)">Total</th><th style="background:rgba(74,144,217,.07);color:var(--blue)">%</th>
+            <th style="background:rgba(245,166,35,.07);color:var(--amber)">Acertos</th><th style="background:rgba(245,166,35,.07);color:var(--amber)">Erros</th><th style="background:rgba(245,166,35,.07);color:var(--amber)">Total</th><th style="background:rgba(245,166,35,.07);color:var(--amber)">%</th>
+            <th style="background:rgba(62,207,142,.07);color:var(--accent);min-width:60px">Teoria ✓</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-edital"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ METAS ══════ -->
+<div class="page" id="page-metas">
+  <div class="page-header"><div class="page-header-left"><h1>Metas Personalizadas</h1><p>Configurações por matéria do edital</p></div></div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:10px">Configuração da Prova</div>
+      <table>
+        <tr><td style="color:var(--text3);width:55%">Total de questões da prova</td><td><input type="number" id="m-total-questoes" onchange="saveMetas()" style="width:80px" placeholder="110"></td></tr>
+        <tr><td style="color:var(--text3)">Data prevista da prova</td><td><input type="date" id="m-data-prova" onchange="saveMetas()"></td></tr>
+        <tr><td style="color:var(--text3)">Dias restantes</td><td><span id="m-dias-restantes" style="font-family:var(--mono);color:var(--accent);font-weight:600">—</span></td></tr>
+        <tr><td style="color:var(--text3)">Meta de horas/dia</td><td><input type="number" id="m-meta-dia" onchange="saveMetas()" style="width:60px" placeholder="2"> h/dia</td></tr>
+        <tr><td style="color:var(--text3)">Matérias cadastradas</td><td><span id="m-qtd-materias" style="font-family:var(--mono);font-weight:600">0</span></td></tr>
+      </table>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:10px">Nota mínima CGU AFFC</div>
+      <table>
+        <tr><td style="color:var(--text3)">Mínimo Conhecimentos Básicos</td><td><span class="badge b-red">12 pts</span></td></tr>
+        <tr><td style="color:var(--text3)">Mínimo Conhecimentos Específicos</td><td><span class="badge b-red">16 pts</span></td></tr>
+        <tr><td style="color:var(--text3)">Mínimo Conhecimentos Especializados</td><td><span class="badge b-red">16 pts</span></td></tr>
+        <tr><td style="color:var(--text3)">Mínimo total (soma das 3 provas)</td><td><span class="badge b-red">60 pts</span></td></tr>
+        <tr><td style="color:var(--text3)">Banca organizadora</td><td><span class="badge b-blue">FGV</span></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Por Matéria</div><div style="font-size:11px;color:var(--text3)">Importância = (questões × peso) / total ponderado</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Matéria</th><th>Bloco</th><th>Dif. (1-5)</th><th>Nível</th><th>Método</th><th>Questões Prova</th><th>Peso</th><th>Pontuação Pond.</th><th>Importância %</th><th>Horas/ciclo</th><th>Questões/ciclo</th></tr></thead>
+      <tbody id="tbody-metas"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════ PRIORIDADE ══════ -->
+<div class="page" id="page-prioridade">
+  <div class="page-header"><div class="page-header-left"><h1>⚡ Prioridade de Estudo</h1><p>Sugestão automática baseada na importância e no seu aproveitamento atual</p></div>
+    <div class="page-header-right"><button class="btn btn-sm btn-primary" onclick="calcularPrioridades()">↺ Recalcular</button></div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title" style="margin-bottom:8px;font-size:12px;color:var(--text2)">
+      A prioridade é calculada combinando: importância da matéria no edital × (100% − seu aproveitamento atual). Matérias com alta importância e baixo aproveitamento ficam no topo.
+    </div>
+  </div>
+  <div id="prioridade-lista"></div>
+</div>
+
+<!-- ══════ CICLO BUILDER ══════ -->
+<div class="page" id="page-ciclobuilder">
+  <div class="page-header"><div class="page-header-left"><h1>Ciclo de Estudos</h1><p>Monte e acompanhe a sequência do seu ciclo</p></div>
+    <div class="page-header-right"><button class="btn btn-sm btn-primary" onclick="addSlotCiclo()">+ Bloco</button><button class="btn btn-sm btn-danger" onclick="limparCicloBuilder()">Limpar</button></div>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:8px">Resumo do Ciclo Planejado</div>
+      <div id="ciclo-resumo" style="font-size:12px;color:var(--text2)">Nenhum bloco adicionado.</div>
+      <div class="prog-bar" style="margin-top:10px;height:8px"><div class="prog-fill" id="ciclo-prog" style="width:0%;background:var(--blue)"></div></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px" id="ciclo-prog-label">0% concluído</div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title" style="margin-bottom:8px">Adicionar Bloco</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">
+        <div><label class="lbl">Matéria</label><select id="cb-mat"><option value="">Selecione...</option></select></div>
+        <div><label class="lbl">Tipo</label><select id="cb-tipo"><option value="teoria">📖 Teoria</option><option value="questoes">✏️ Questões</option><option value="revisao">🔁 Revisão</option></select></div>
+        <div><label class="lbl">Tempo estimado</label><input type="text" id="cb-tempo" placeholder="1:00"></div>
+        <div><label class="lbl">Observação</label><input type="text" id="cb-obs" placeholder="Opcional"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addSlotCiclo()">+ Adicionar bloco</button>
+    </div>
+  </div>
+  <div class="card"><div class="card-title" style="margin-bottom:10px">Blocos do Ciclo</div><div id="ciclo-slots"></div></div>
+</div>
+
+<!-- ══════ TEORIA ══════ -->
+<div class="page" id="page-teoria">
+  <div class="page-header">
+    <div class="page-header-left"><h1>1ª Etapa — Teoria</h1><p>Matérias com teoria pendente</p></div>
+    <div class="page-header-right"><button class="btn btn-sm btn-warn" onclick="limparTeoria()">🗑 Limpar Ciclo</button></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Controle de Teoria</div><span id="total-teoria" style="font-size:11px;color:var(--text3)"></span></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Matéria</th><th>Bloco</th><th>Nível</th><th>Método</th><th>Tempo/ciclo</th><th>Tempo Estudado</th><th>Check ✓</th></tr></thead>
+      <tbody id="tbody-teoria"></tbody>
+      <tfoot><tr><td colspan="4"></td><td style="font-family:var(--mono);color:var(--text3)">Meta: <span id="total-tempo-meta">0h</span></td><td style="color:var(--accent);font-family:var(--mono);font-weight:600">Estudado: <span id="total-tempo-teoria">0h</span></td><td></td></tr></tfoot>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════ QUESTÕES ══════ -->
+<div class="page" id="page-questoes">
+  <div class="page-header">
+    <div class="page-header-left"><h1>2ª Etapa — Bateria de Questões</h1><p>🔴 linha vermelha = abaixo do mínimo do ciclo</p></div>
+    <div class="page-header-right">
+      <button class="btn btn-sm" onclick="copiarQuestoes()">📋 Copiar para Ciclos</button>
+      <button class="btn btn-sm btn-warn" onclick="limparQuestoes()">🗑 Limpar Ciclo</button>
+    </div>
+  </div>
+  <div class="g4" style="margin-bottom:12px">
+    <div class="metric"><div class="m-label">Tempo Total</div><div class="m-val" id="q-tempo-total">0h</div></div>
+    <div class="metric"><div class="m-label">Total Acertos</div><div class="m-val" id="q-total-acertos" style="color:var(--accent)">0</div></div>
+    <div class="metric"><div class="m-label">Total Erros</div><div class="m-val" id="q-total-erros" style="color:var(--red)">0</div></div>
+    <div class="metric"><div class="m-label">% Acertos</div><div class="m-val" id="q-pct" style="color:var(--amber)">0%</div></div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Matéria</th><th>Qtd. mínima ciclo</th><th>Acertos</th><th>Erros</th><th>Total realizado</th><th>% Acertos</th><th>Tempo gasto</th></tr></thead>
+      <tbody id="tbody-questoes"></tbody>
+      <tfoot><tr><td>Totais</td><td id="q-min-total">0</td><td id="q-ac-total">0</td><td id="q-er-total">0</td><td id="q-tot-total">0</td><td id="q-pct-total">0%</td><td></td></tr></tfoot>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════ REVISÃO ══════ -->
+<div class="page" id="page-revisao">
+  <div class="page-header">
+    <div class="page-header-left"><h1>3ª Etapa — Revisão</h1><p>Tempo recomendado: 10 a 30 minutos por matéria</p></div>
+    <div class="page-header-right"><button class="btn btn-sm btn-warn" onclick="limparRevisao()">🗑 Limpar Ciclo</button></div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Matéria</th><th>Tempo de Revisão</th><th>Concluída ✓</th></tr></thead>
+      <tbody id="tbody-revisao"></tbody>
+      <tfoot><tr><td>Total</td><td id="rev-total" style="font-family:var(--mono);color:var(--accent)">0:00:00</td><td></td></tr></tfoot>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════ CICLOS ══════ -->
+<div class="page" id="page-ciclos">
+  <div class="page-header"><div class="page-header-left"><h1>Histórico de Ciclos</h1><p>Registre e compare ciclos</p></div></div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">Registrar Novo Ciclo Geral</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:10px">
+      <div><label class="lbl">Nº Ciclo</label><input type="number" id="c-num" placeholder="1"></div>
+      <div><label class="lbl">Início</label><input type="date" id="c-inicio"></div>
+      <div><label class="lbl">Fim</label><input type="date" id="c-fim"></div>
+      <div><label class="lbl">Horas estudadas</label><input type="text" id="c-horas" placeholder="40:00"></div>
+      <div><label class="lbl">Qtd. questões</label><input type="number" id="c-questoes" placeholder="0"></div>
+      <div><label class="lbl">% acertos</label><input type="number" id="c-pct" placeholder="0" min="0" max="100"></div>
+      <div><label class="lbl">Tempo questões</label><input type="text" id="c-tq" placeholder="3:00"></div>
+      <div><label class="lbl">Tempo revisão</label><input type="text" id="c-tr" placeholder="1:30"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="addCiclo()">Salvar Ciclo</button>
+      <button class="btn" onclick="colarQuestoesCiclo()">📋 Colar da aba Questões</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Ciclos Gerais</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Ciclo</th><th>Início</th><th>Fim</th><th>Horas</th><th>Questões</th><th>% Acertos</th><th>T. Questões</th><th>T. Revisão</th><th>Total</th><th></th></tr></thead>
+      <tbody id="tbody-ciclos"></tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Bateria de Questões por Ciclo</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Ciclo</th><th>Matéria</th><th>Acertos</th><th>Erros</th><th>Total</th><th>%</th><th>Tempo</th><th></th></tr></thead>
+      <tbody id="tbody-ciclos-mat"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══════ DASHBOARD ══════ -->
+<div class="page" id="page-dashboard">
+  <div class="page-header"><div class="page-header-left"><h1>Dashboard de Análise</h1><p>Visão completa do desempenho</p></div></div>
+  <div class="g4" style="margin-bottom:12px">
+    <div class="metric"><div class="m-label">Total de Horas</div><div class="m-val" id="d-horas">0h</div></div>
+    <div class="metric"><div class="m-label">Ciclos Concluídos</div><div class="m-val" id="d-ciclos">0</div></div>
+    <div class="metric"><div class="m-label">Questões Totais</div><div class="m-val" id="d-questoes">0</div></div>
+    <div class="metric"><div class="m-label">Média de Acertos</div><div class="m-val" id="d-media" style="color:var(--accent)">0%</div></div>
+  </div>
+  <!-- GRÁFICO EVOLUÇÃO -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">Evolução de Acertos por Ciclo</div>
+    <div id="grafico-evolucao" style="position:relative;height:140px"></div>
+  </div>
+  <div class="g2" style="margin-bottom:12px">
+    <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:10px">Progresso Teórico por Matéria</div><div id="d-progresso-materias"></div></div>
+    <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:10px">Desempenho por Ciclo</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Ciclo</th><th>Horas</th><th>Questões</th><th>% Acertos</th></tr></thead><tbody id="d-ciclos-tbl"></tbody></table></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:10px">Horas por Matéria</div><div id="d-horas-mat"></div></div>
+    <div class="card" style="margin-bottom:0"><div class="card-title" style="margin-bottom:10px">Acertos por Matéria (sessão atual)</div><div id="d-acertos-mat"></div></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL COPIAR QUESTÕES -->
+<div class="modal-overlay" id="modal-copiar">
+  <div class="modal">
+    <h3>Copiar Questões para Ciclo</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Informe o número do ciclo para registrar os dados atuais da aba Questões:</p>
+    <div><label class="lbl">Nº do Ciclo</label><input type="number" id="modal-ciclo-num" placeholder="Ex: 1" style="width:100px"></div>
+    <div class="modal-btns"><button class="btn" onclick="fecharModal('modal-copiar')">Cancelar</button><button class="btn btn-primary" onclick="confirmarCopiar()">Confirmar</button></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let _uid=Date.now();
+function uid(){return'id'+(_uid++)}
+let S={
+  provasFazer:[],provasFeitas:[],horas:[],edital:[],
+  metasByMat:{},metas:{totalQuestoes:110,dataProva:'',metaDiaria:2},
+  questoes:{},revisao:{},teoriaTempos:{},teoriaCheck:{},
+  ciclos:[],ciclosMat:[],cicloBuilder:[],simulados:[]
+};
+
+// ── PERSIST ──
+function load(){try{const s=localStorage.getItem('planCGU5');if(s)S=JSON.parse(s)}catch(e){}}
+function save(){try{localStorage.setItem('planCGU5',JSON.stringify(S))}catch(e){}}
+function saveAll(){save();showToast('💾 Dados salvos!')}
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='planejador-cgu-'+new Date().toISOString().split('T')[0]+'.json';a.click();
+}
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{try{S=JSON.parse(e.target.result);save();renderAll();showToast('✅ Dados importados!')}catch(err){alert('Arquivo inválido.')}};
+  reader.readAsText(file);input.value='';
+}
+
+// ── TOAST ──
+function showToast(msg,duration=2500){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:10px 16px;font-size:13px;z-index:9999;box-shadow:var(--shadow);transition:opacity .3s;pointer-events:none';document.body.appendChild(t)}
+  t.textContent=msg;t.style.opacity='1';
+  clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.opacity='0'},duration);
+}
+
+// ── THEME ──
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('theme-btn').textContent=isDark?'🌙 Modo escuro':'☀️ Modo claro';
+  S.theme=isDark?'light':'dark';save();
+}
+
+// ── NAV ──
+const PAGE_MAP={inicio:0,horas:1,simulado:2,dashboard:3,edital:4,metas:5,prioridade:6,ciclobuilder:7,teoria:8,questoes:9,revisao:10,ciclos:11};
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const idx=PAGE_MAP[id];
+  if(idx!==undefined)document.querySelectorAll('.nav-item')[idx].classList.add('active');
+  renderAll();
+}
+
+// ── KEYBOARD SHORTCUTS ──
+document.addEventListener('keydown',e=>{
+  if(e.altKey){
+    const k={1:'inicio',2:'horas',3:'edital',4:'metas',5:'teoria',6:'questoes',7:'revisao',8:'ciclos',9:'dashboard'};
+    if(k[e.key]){e.preventDefault();showPage(k[e.key])}
+  }
+});
+
+// ── UTILS ──
+function diasAte(data){if(!data)return null;const d=new Date(data+'T00:00:00'),h=new Date();h.setHours(0,0,0,0);return Math.ceil((d-h)/86400000)}
+function horasToMin(s){if(!s)return 0;const p=String(s).split(':');return(parseInt(p[0])||0)*60+(parseInt(p[1])||0)}
+function minToStr(m){const h=Math.floor(m/60),mm=m%60;return h+'h'+(mm>0?String(mm).padStart(2,'0')+'m':'')}
+function minToHHMM(m){return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+':00'}
+function calcPct(a,t){return t>0?Math.round(a/t*100):0}
+function pctBadge(p){const c=p>=70?'b-green':p>=50?'b-amber':p>0?'b-red':'b-gray';return`<span class="badge ${c}">${p}%</span>`}
+function getToday(){return new Date().toISOString().split('T')[0]}
+function getWeekStart(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split('T')[0]}
+function getMonthStr(){return getToday().slice(0,7)}
+function getMaterias(){const seen=new Set(),out=[];S.edital.forEach(e=>{if(e.tipo==='mat'&&!seen.has(e.nome)){seen.add(e.nome);out.push(e.nome)}});return out}
+function getTopicos(matNome){return S.edital.filter(e=>e.tipo==='topico'&&e.matNome===matNome)}
+function isMatTeoriaConcluida(matNome){const tops=getTopicos(matNome);return tops.length>0&&tops.every(e=>e.teoriaOk)}
+function sumsT(mn){const t=getTopicos(mn);const ac=t.reduce((s,x)=>s+(+x.acertosT||0),0);const er=t.reduce((s,x)=>s+(+x.errosT||0),0);return{ac,er,total:ac+er,pct:calcPct(ac,ac+er)}}
+function sumsB(mn){const t=getTopicos(mn);const ac=t.reduce((s,x)=>s+(+x.acertosB||0),0);const er=t.reduce((s,x)=>s+(+x.errosB||0),0);return{ac,er,total:ac+er,pct:calcPct(ac,ac+er)}}
+function esc(s){return String(s||'').replace(/'/g,"\\'")}
+
+// ── STREAK ──
+function calcStreak(){
+  const dias=new Set(S.horas.map(h=>h.data));
+  let streak=0,d=new Date();
+  while(true){
+    const ds=d.toISOString().split('T')[0];
+    if(!dias.has(ds))break;
+    streak++;d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+// ── META DIÁRIA ──
+function salvarMetaDiaria(){
+  const v=+document.getElementById('meta-horas-dia').value||2;
+  S.metas.metaDiaria=v;save();renderMetaDiaria();
+}
+function renderMetaDiaria(){
+  const meta=(S.metas.metaDiaria||2)*60;
+  const hoje=getToday();
+  const feito=S.horas.filter(h=>h.data===hoje).reduce((s,h)=>s+h.minutos,0);
+  const pct=Math.min(100,Math.round(feito/meta*100));
+  const arc=document.getElementById('meta-ring-arc');
+  if(arc)arc.style.strokeDashoffset=201-(201*pct/100);
+  const pctEl=document.getElementById('meta-ring-pct');
+  if(pctEl)pctEl.textContent=pct+'%';
+  if(document.getElementById('meta-horas-dia'))document.getElementById('meta-horas-dia').value=S.metas.metaDiaria||2;
+  document.getElementById('streak-meta-disp').textContent=minToStr(feito)+' / '+minToStr(meta);
+}
+
+// ── RESUMO DO DIA ──
+function renderResumoDia(){
+  const mats=getMaterias();
+  const hoje=getToday();
+  const hojeMin=S.horas.filter(h=>h.data===hoje).reduce((s,h)=>s+h.minutos,0);
+  const pendTeoria=mats.filter(n=>!isMatTeoriaConcluida(n)).length;
+  const pendRevisao=mats.filter(n=>!(S.revisao[n]||{}).check).length;
+  const qTot=mats.reduce((s,n)=>{const q=S.questoes[n]||{};return s+(+q.acertos||0)+(+q.erros||0)},0);
+  const dias=diasAte(S.metas.dataProva);
+  const el=document.getElementById('resumo-dia');
+  el.innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+    <div style="font-size:13px;font-weight:500">📅 ${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-left:auto">
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">HOJE</div><div style="font-family:var(--mono);font-weight:600;color:var(--accent)">${minToStr(hojeMin)}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">TEORIA PEND.</div><div style="font-family:var(--mono);font-weight:600;color:${pendTeoria>0?'var(--amber)':'var(--accent)'}">${pendTeoria}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">REVISÃO PEND.</div><div style="font-family:var(--mono);font-weight:600;color:${pendRevisao>0?'var(--amber)':'var(--accent)'}">${pendRevisao}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text3)">QUESTÕES CICLO</div><div style="font-family:var(--mono);font-weight:600">${qTot}</div></div>
+      ${dias!==null?`<div style="text-align:center"><div style="font-size:10px;color:var(--text3)">DIAS P/ PROVA</div><div style="font-family:var(--mono);font-weight:600;color:${dias<=30?'var(--red)':dias<=60?'var(--amber)':'var(--accent)'}">${dias}</div></div>`:''}
+    </div>
+  </div>`;
+}
+
+// ── HEATMAP ──
+function renderHeatmap(){
+  const container=document.getElementById('heatmap-container');
+  if(!container)return;
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const inicio=new Date(hoje);inicio.setDate(inicio.getDate()-181);
+  const horasByDay={};
+  S.horas.forEach(h=>{horasByDay[h.data]=(horasByDay[h.data]||0)+h.minutos});
+  const maxMin=Math.max(...Object.values(horasByDay),1);
+  let html='<div class="heatmap-wrap">';
+  let cur=new Date(inicio);
+  while(cur<=hoje){
+    const ds=cur.toISOString().split('T')[0];
+    const min=horasByDay[ds]||0;
+    const level=min===0?0:min<60?1:min<120?2:min<180?3:4;
+    const label=min>0?`${ds}: ${minToStr(min)}`:`${ds}: sem estudo`;
+    html+=`<div class="heatmap-day hm-${level}" title="${label}"></div>`;
+    cur.setDate(cur.getDate()+1);
+  }
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+// ── GRÁFICO EVOLUÇÃO ──
+function renderGrafico(){
+  const el=document.getElementById('grafico-evolucao');
+  if(!el||S.ciclos.length===0){if(el)el.innerHTML='<p style="color:var(--text3);font-size:12px;padding:20px 0">Nenhum ciclo registrado ainda.</p>';return}
+  const ciclos=[...S.ciclos].sort((a,b)=>a.num-b.num);
+  const w=el.offsetWidth||600,h=140,pad=32;
+  const vals=ciclos.map(c=>+c.pct||0);
+  const maxV=Math.max(...vals,100);
+  const pts=ciclos.map((c,i)=>{
+    const x=pad+(i/(ciclos.length-1||1))*(w-pad*2);
+    const y=h-pad-(+c.pct||0)/maxV*(h-pad*1.5);
+    return[x,y];
+  });
+  let path=pts.map((p,i)=>(i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`)).join('');
+  let area=`M${pts[0][0]},${h-pad} `+pts.map(p=>`L${p[0]},${p[1]}`).join(' ')+` L${pts[pts.length-1][0]},${h-pad} Z`;
+  const svg=`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible">
+    <defs><linearGradient id="grd" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--accent)" stop-opacity=".3"/><stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+    <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="var(--border2)" stroke-width="1"/>
+    <line x1="${pad}" y1="${pad/2}" x2="${pad}" y2="${h-pad}" stroke="var(--border2)" stroke-width="1"/>
+    <path d="${area}" fill="url(#grd)"/>
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--accent)"/><text x="${p[0]}" y="${p[1]-8}" text-anchor="middle" font-size="10" fill="var(--text3)" font-family="var(--mono)">${vals[i]}%</text><text x="${p[0]}" y="${h-6}" text-anchor="middle" font-size="9" fill="var(--text3)" font-family="var(--mono)">#${ciclos[i].num}</text>`).join('')}
+  </svg>`;
+  el.innerHTML=svg;
+}
+
+// ── PRIORIDADES ──
+function calcularPrioridades(){
+  const mats=getMaterias();
+  if(!S.metasByMat)S.metasByMat={};
+  const totalPond=mats.reduce((s,n)=>s+(+(S.metasByMat[n]||{}).questoes||0)*(+(S.metasByMat[n]||{}).peso||1),0);
+  const scores=mats.map(n=>{
+    const m=S.metasByMat[n]||{};
+    const pond=(+m.questoes||0)*(+m.peso||1);
+    const imp=totalPond>0?pond/totalPond*100:0;
+    const q=S.questoes[n]||{};
+    const tot=(+q.acertos||0)+(+q.erros||0);
+    const aprov=tot>0?calcPct(+q.acertos||0,tot):0;
+    const score=imp*(1-aprov/100);
+    const concluida=isMatTeoriaConcluida(n);
+    return{n,imp,aprov,score,concluida,bloco:m.bloco||''};
+  }).sort((a,b)=>b.score-a.score);
+  const el=document.getElementById('prioridade-lista');
+  if(!el)return;
+  const blocoColors={'Básico':'b-blue','Específico':'b-purple','Especializado':'b-amber'};
+  el.innerHTML=scores.map((s,i)=>{
+    const cls=i<3?'p-alta':i<6?'p-media':'p-baixa';
+    const rank=i<3?'🔴 Alta':i<6?'🟡 Média':'🟢 Baixa';
+    return`<div class="priority-item ${cls}">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text3);min-width:28px">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px">${s.n} ${s.bloco?`<span class="badge ${blocoColors[s.bloco]||'b-gray'}">${s.bloco}</span>`:''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">Importância: ${s.imp.toFixed(1)}% · Aproveitamento atual: ${s.aprov}% · ${s.concluida?'✅ Teoria concluída':'📖 Teoria pendente'}</div>
+        <div class="prog-bar" style="margin-top:5px"><div class="prog-fill" style="width:${Math.min(100,s.imp*(1-s.aprov/100))}%;background:${i<3?'var(--red)':i<6?'var(--amber)':'var(--accent)'}"></div></div>
+      </div>
+      <div style="text-align:right;font-size:11px"><div style="font-weight:500">${rank}</div><div style="font-family:var(--mono);color:var(--text3)">score: ${s.score.toFixed(1)}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ── INÍCIO ──
+function renderInicio(){
+  renderResumoDia();
+  const streak=calcStreak();
+  document.getElementById('streak-num').textContent=streak;
+  const next=S.provasFazer.filter(p=>p.data).sort((a,b)=>a.data>b.data?1:-1)[0];
+  const dias=next?diasAte(next.data):null;
+  const avgPct=S.provasFeitas.length?Math.round(S.provasFeitas.reduce((s,p)=>s+(p.total>0?p.acertos/p.total*100:0),0)/S.provasFeitas.length):0;
+  document.getElementById('inicio-metrics').innerHTML=`
+    <div class="metric"><div class="m-label">Próxima Prova</div><div class="m-val" style="font-size:${dias!==null?'30px':'16px'};color:var(--accent)">${dias!==null?dias:'—'}</div><div class="m-sub">${dias!==null?'dias restantes':'nenhuma'}</div></div>
+    <div class="metric"><div class="m-label">Provas a Fazer</div><div class="m-val">${S.provasFazer.length}</div></div>
+    <div class="metric"><div class="m-label">Provas Realizadas</div><div class="m-val">${S.provasFeitas.length}</div></div>
+    <div class="metric"><div class="m-label">Média de Acertos</div><div class="m-val" style="color:${avgPct>=70?'var(--accent)':avgPct>=50?'var(--amber)':'var(--red)'}">${avgPct}%</div></div>`;
+  document.getElementById('tbody-fazer').innerHTML=S.provasFazer.map((p,i)=>{
+    const d=diasAte(p.data);const bc=d===null?'b-gray':d>30?'b-green':d>7?'b-amber':'b-red';
+    return`<tr><td><input type="date" value="${p.data||''}" onchange="S.provasFazer[${i}].data=this.value;save();renderInicio()" style="width:130px"></td><td><input type="text" value="${esc(p.situacao)}" onchange="S.provasFazer[${i}].situacao=this.value;save()" style="width:90px"></td><td><input type="text" value="${esc(p.orgao)}" onchange="S.provasFazer[${i}].orgao=this.value;save()" style="width:78px"></td><td><input type="text" value="${esc(p.cargo)}" onchange="S.provasFazer[${i}].cargo=this.value;save()" style="width:118px"></td><td><select onchange="S.provasFazer[${i}].nivel=this.value;save()" style="width:78px"><option ${p.nivel==='Médio'?'selected':''}>Médio</option><option ${p.nivel==='Superior'?'selected':''}>Superior</option><option ${p.nivel==='Técnico'?'selected':''}>Técnico</option></select></td><td><input type="text" value="${esc(p.banca)}" onchange="S.provasFazer[${i}].banca=this.value;save()" style="width:58px"></td><td><input type="date" value="${p.prazoInsc||''}" onchange="S.provasFazer[${i}].prazoInsc=this.value;save()" style="width:130px"></td><td><input type="date" value="${p.prazoPag||''}" onchange="S.provasFazer[${i}].prazoPag=this.value;save()" style="width:130px"></td><td style="text-align:center"><input type="checkbox" ${p.pago?'checked':''} onchange="S.provasFazer[${i}].pago=this.checked;save()"></td><td>${d!==null?`<span class="badge ${bc}">${d}d</span>`:'—'}</td><td><button class="btn btn-sm btn-danger" onclick="S.provasFazer.splice(${i},1);save();renderInicio()">✕</button></td></tr>`;
+  }).join('');
+  document.getElementById('tbody-feitas').innerHTML=S.provasFeitas.map((p,i)=>{
+    const pp=p.total>0?Math.round(p.acertos/p.total*100):0;
+    return`<tr><td><input type="date" value="${p.data||''}" onchange="S.provasFeitas[${i}].data=this.value;save()" style="width:130px"></td><td><input type="text" value="${esc(p.orgao)}" onchange="S.provasFeitas[${i}].orgao=this.value;save()" style="width:75px"></td><td><input type="text" value="${esc(p.cargo)}" onchange="S.provasFeitas[${i}].cargo=this.value;save()" style="width:110px"></td><td><select onchange="S.provasFeitas[${i}].nivel=this.value;save()" style="width:78px"><option ${p.nivel==='Médio'?'selected':''}>Médio</option><option ${p.nivel==='Superior'?'selected':''}>Superior</option></select></td><td><input type="text" value="${esc(p.banca)}" onchange="S.provasFeitas[${i}].banca=this.value;save()" style="width:58px"></td><td><select onchange="S.provasFeitas[${i}].tipo=this.value;save()" style="width:130px"><option ${p.tipo==='Múltipla Escolha'?'selected':''}>Múltipla Escolha</option><option ${p.tipo==='Certo ou Errado'?'selected':''}>Certo ou Errado</option></select></td><td><input type="number" value="${Math.max(0,+p.acertos||0)}" min="0" onchange="S.provasFeitas[${i}].acertos=Math.max(0,+this.value);save();renderInicio()" style="width:58px"></td><td><input type="number" value="${Math.max(0,+p.total||0)}" min="0" onchange="S.provasFeitas[${i}].total=Math.max(0,+this.value);save();renderInicio()" style="width:58px"></td><td>${pctBadge(pp)}</td><td><input type="text" value="${esc(p.situacao)}" onchange="S.provasFeitas[${i}].situacao=this.value;save()" style="width:82px"></td><td><input type="number" value="${p.posicao||''}" min="0" onchange="S.provasFeitas[${i}].posicao=Math.max(0,+this.value);save()" style="width:58px" placeholder="Ex:45"></td><td><input type="number" value="${p.posicaoVagas||''}" min="0" onchange="S.provasFeitas[${i}].posicaoVagas=Math.max(0,+this.value);save()" style="width:58px" placeholder="Ex:10"></td><td><button class="btn btn-sm btn-danger" onclick="S.provasFeitas.splice(${i},1);save();renderInicio()">✕</button></td></tr>`;
+  }).join('');
+  renderMetaDiaria();
+}
+function addProvaFazer(){S.provasFazer.push({data:'',situacao:'',orgao:'CGU',cargo:'AFFC',nivel:'Superior',banca:'FGV',prazoInsc:'',prazoPag:'',pago:false});save();renderInicio()}
+function addProvaFeita(){S.provasFeitas.push({data:'',orgao:'',cargo:'',nivel:'Superior',banca:'FGV',tipo:'Múltipla Escolha',acertos:0,total:0,situacao:'',posicao:'',posicaoVagas:''});save();renderInicio()}
+
+// ── CRONÔMETRO ──
+let chronoStart=null,chronoElapsed=0,chronoInterval=null,chronoRunning=false;
+function toggleChrono(){
+  if(!chronoRunning){
+    chronoStart=Date.now()-chronoElapsed;
+    chronoInterval=setInterval(tickChrono,1000);
+    chronoRunning=true;
+    document.getElementById('chrono-btn').textContent='⏸ Pausar';
+    document.getElementById('chrono-display').classList.add('running');
+    document.getElementById('chrono-finalizar').style.display='flex';
+  } else {
+    clearInterval(chronoInterval);chronoInterval=null;
+    chronoElapsed=Date.now()-chronoStart;
+    chronoRunning=false;
+    document.getElementById('chrono-btn').textContent='▶ Continuar';
+    document.getElementById('chrono-display').classList.remove('running');
+  }
+}
+function tickChrono(){
+  const el=Date.now()-chronoStart;
+  const h=Math.floor(el/3600000),m=Math.floor((el%3600000)/60000),s=Math.floor((el%60000)/1000);
+  document.getElementById('chrono-display').textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function resetChrono(){
+  clearInterval(chronoInterval);chronoInterval=null;chronoElapsed=0;chronoRunning=false;
+  document.getElementById('chrono-display').textContent='00:00:00';
+  document.getElementById('chrono-display').classList.remove('running');
+  document.getElementById('chrono-btn').textContent='▶ Iniciar';
+  document.getElementById('chrono-finalizar').style.display='none';
+}
+function finalizarChrono(){
+  const min=Math.round((chronoRunning?Date.now()-chronoStart:chronoElapsed)/60000);
+  if(min<1){alert('Tempo muito curto!');return}
+  const mat=document.getElementById('chrono-mat').value;
+  const tipo=document.getElementById('chrono-tipo').value;
+  S.horas.push({data:getToday(),mat,tipo,minutos:min});
+  if(tipo==='teoria'&&mat){const cur=horasToMin(S.teoriaTempos[mat]||'');S.teoriaTempos[mat]=minToHHMM(cur+min)}
+  if(tipo==='revisao'&&mat){if(!S.revisao[mat])S.revisao[mat]={tempo:'0:00:00',check:false};const cur=horasToMin(S.revisao[mat].tempo||'');S.revisao[mat].tempo=minToHHMM(cur+min)}
+  if(tipo==='questoes'&&mat){if(!S.questoes[mat])S.questoes[mat]={acertos:0,erros:0,tempo:'0:00:00'};const cur=horasToMin(S.questoes[mat].tempo||'');S.questoes[mat].tempo=minToHHMM(cur+min)}
+  save();resetChrono();renderAll();showToast(`✅ ${minToStr(min)} de ${tipo} registrados!`);
+}
+
+// ── HORAS ──
+let horasFilter='all';
+function addHora(){
+  const data=document.getElementById('h-data').value;
+  const mat=document.getElementById('h-materia').value;
+  const tipo=document.getElementById('h-tipo').value;
+  const hs=document.getElementById('h-horas').value;
+  if(!data||!hs)return alert('Informe a data e o tempo.');
+  S.horas.push({data,mat,tipo,minutos:horasToMin(hs)});
+  save();renderHoras();document.getElementById('h-horas').value='';
+}
+function filtrarHoras(tipo,btn){horasFilter=tipo;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderHoras()}
+function renderHoras(){
+  const hoje=getToday(),semana=getWeekStart(),mes=getMonthStr();
+  const totH=f=>S.horas.filter(f).reduce((s,h)=>s+h.minutos,0);
+  document.getElementById('m-hoje').textContent=minToStr(totH(h=>h.data===hoje));
+  document.getElementById('m-semana').textContent=minToStr(totH(h=>h.data>=semana));
+  document.getElementById('m-mes').textContent=minToStr(totH(h=>h.data.startsWith(mes)));
+  document.getElementById('m-total').textContent=minToStr(totH(()=>true));
+  const tipoIcon={teoria:'📖',questoes:'✏️',revisao:'🔁',geral:'📚'};
+  const tb=document.getElementById('tbody-horas');
+  if(horasFilter==='dia'){const mp={};S.horas.forEach(h=>{mp[h.data]=(mp[h.data]||0)+h.minutos});tb.innerHTML=Object.entries(mp).sort((a,b)=>b[0]>a[0]?1:-1).map(([d,m])=>`<tr><td>${d}</td><td>—</td><td>—</td><td style="font-family:var(--mono)">${minToStr(m)}</td><td></td></tr>`).join('')}
+  else if(horasFilter==='mes'){const mp={};S.horas.forEach(h=>{const k=h.data.slice(0,7);mp[k]=(mp[k]||0)+h.minutos});tb.innerHTML=Object.entries(mp).sort((a,b)=>b[0]>a[0]?1:-1).map(([d,m])=>`<tr><td>${d}</td><td>—</td><td>—</td><td style="font-family:var(--mono)">${minToStr(m)}</td><td></td></tr>`).join('')}
+  else if(horasFilter==='materia'){const mp={};S.horas.forEach(h=>{const k=h.mat||'Geral';mp[k]=(mp[k]||0)+h.minutos});tb.innerHTML=Object.entries(mp).sort((a,b)=>b[1]-a[1]).map(([d,m])=>`<tr><td>—</td><td>${d}</td><td>—</td><td style="font-family:var(--mono)">${minToStr(m)}</td><td></td></tr>`).join('')}
+  else{tb.innerHTML=[...S.horas].reverse().map((h,i)=>{const ri=S.horas.length-1-i;return`<tr><td>${h.data}</td><td>${h.mat||'—'}</td><td>${tipoIcon[h.tipo]||'📚'} ${h.tipo||''}</td><td style="font-family:var(--mono)">${minToStr(h.minutos)}</td><td><button class="btn btn-sm btn-danger" onclick="S.horas.splice(${ri},1);save();renderHoras()">✕</button></td></tr>`}).join('')}
+  renderHeatmap();renderMetaDiaria();populateSelects();
+}
+
+// ── SIMULADO ──
+let simInterval=null,simSecondsLeft=0,simData={};
+function carregarConfigSimulado(){
+  const mats=getMaterias();
+  document.getElementById('sim-qtd').value=S.metas.totalQuestoes||110;
+  document.getElementById('sim-tempo').value=270;
+  renderSimMaterias();
+}
+function renderSimMaterias(){
+  const mats=getMaterias();
+  const el=document.getElementById('sim-materias-config');
+  if(!el)return;
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">` +
+    mats.map(n=>{const m=S.metasByMat[n]||{};return`<div style="display:flex;align-items:center;gap:7px"><label style="font-size:12px;flex:1">${n}</label><input type="number" id="sim-q-${n.replace(/\s+/g,'_')}" value="${m.questoes||0}" min="0" style="width:55px"></div>`}).join('') +
+    '</div>';
+  renderHistSimulados();
+}
+function iniciarSimulado(){
+  const mats=getMaterias();
+  const tempo=+document.getElementById('sim-tempo').value*60;
+  const nome=document.getElementById('sim-nome').value||'Simulado #'+(S.simulados.length+1);
+  simData={nome,mats,tempo,inicio:Date.now()};
+  simSecondsLeft=tempo;
+  document.getElementById('simulado-config').style.display='none';
+  document.getElementById('simulado-ativo').style.display='block';
+  const total=mats.reduce((s,n)=>s+(+document.getElementById('sim-q-'+n.replace(/\s+/g,'_')).value||0),0);
+  document.getElementById('sim-progresso').textContent='0/'+total;
+  document.getElementById('sim-gabarito-inputs').innerHTML=mats.map(n=>{
+    const q=+document.getElementById('sim-q-'+n.replace(/\s+/g,'_')).value||0;
+    if(q===0)return'';
+    return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="flex:1;font-size:13px;font-weight:500">${n}</span><label class="lbl" style="white-space:nowrap">Acertos</label><input type="number" id="sg-ac-${n.replace(/\s+/g,'_')}" value="0" min="0" max="${q}" style="width:60px" onchange="updateSimProg(${q})"><label class="lbl" style="white-space:nowrap">de ${q}</label></div>`;
+  }).join('');
+  simInterval=setInterval(tickSim,1000);
+  tickSim();
+}
+function updateSimProg(total){
+  const mats=getMaterias();
+  const feitos=mats.reduce((s,n)=>{const el=document.getElementById('sg-ac-'+n.replace(/\s+/g,'_'));return s+(el?+el.value:0)},0);
+  const qtdTotal=mats.reduce((s,n)=>{const m=S.metasByMat[n]||{};return s+(+m.questoes||0)},0);
+  const pct=qtdTotal>0?Math.round(feitos/qtdTotal*100):0;
+  document.getElementById('sim-prog-bar').style.width=pct+'%';
+}
+function tickSim(){
+  if(simSecondsLeft<=0){encerrarSimulado();return}
+  const m=Math.floor(simSecondsLeft/60),s=simSecondsLeft%60;
+  const el=document.getElementById('sim-countdown');
+  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  if(simSecondsLeft<=300)el.classList.add('urgent');
+  simSecondsLeft--;
+}
+function encerrarSimulado(){
+  clearInterval(simInterval);simInterval=null;
+  document.getElementById('simulado-config').style.display='block';
+  document.getElementById('simulado-ativo').style.display='none';
+}
+function salvarSimulado(){
+  clearInterval(simInterval);simInterval=null;
+  const mats=getMaterias();
+  const resultados=mats.map(n=>({mat:n,acertos:+document.getElementById('sg-ac-'+n.replace(/\s+/g,'_'))?.value||0,total:+(S.metasByMat[n]||{}).questoes||0})).filter(r=>r.total>0);
+  const totalAc=resultados.reduce((s,r)=>s+r.acertos,0);
+  const totalQ=resultados.reduce((s,r)=>s+r.total,0);
+  const tempoUsado=simData.tempo-(simSecondsLeft+1);
+  S.simulados.push({nome:simData.nome,data:getToday(),acertos:totalAc,total:totalQ,pct:calcPct(totalAc,totalQ),tempo:minToStr(Math.floor(tempoUsado/60)),resultados});
+  save();encerrarSimulado();renderHistSimulados();showToast('✅ Simulado salvo! Acertos: '+totalAc+'/'+totalQ+' ('+calcPct(totalAc,totalQ)+'%)');
+}
+function renderHistSimulados(){
+  const tb=document.getElementById('tbody-simulados');if(!tb)return;
+  tb.innerHTML=(S.simulados||[]).map((s,i)=>`<tr><td>${s.nome||'—'}</td><td>${s.data||'—'}</td><td style="font-family:var(--mono)">${s.total||0}</td><td style="font-family:var(--mono)">${s.acertos||0}</td><td>${pctBadge(+s.pct||0)}</td><td>${s.tempo||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="S.simulados.splice(${i},1);save();renderHistSimulados()">✕</button></td></tr>`).join('')||`<tr><td colspan="7" style="text-align:center;padding:14px;color:var(--text3)">Nenhum simulado realizado.</td></tr>`;
+}
+
+// ── MAPA DO EDITAL ──
+function renderEdital(){
+  const mats=getMaterias();let html='';
+  const blocoColors={'Básico':'b-blue','Específico':'b-purple','Especializado':'b-amber'};
+  mats.forEach(matNome=>{
+    const tops=getTopicos(matNome);
+    const st=sumsT(matNome),sb=sumsB(matNome);
+    const gTot=st.total+sb.total,gAc=st.ac+sb.ac,gPct=calcPct(gAc,gTot);
+    const concluida=isMatTeoriaConcluida(matNome);
+    const bloco=(S.metasByMat[matNome]||{}).bloco||'';
+    html+=`<tr class="mat-row"><td colspan="3" style="padding:7px 9px"><div style="display:flex;align-items:center;gap:7px"><span class="mat-name">${matNome}</span>${bloco?`<span class="badge ${blocoColors[bloco]||'b-gray'}">${bloco}</span>`:''} ${concluida?'<span class="badge b-green">Teoria ✓</span>':''}</div></td><td style="font-family:var(--mono);font-weight:600;color:var(--blue);background:rgba(74,144,217,.05)">${st.ac}</td><td style="font-family:var(--mono);font-weight:600;color:var(--red);background:rgba(74,144,217,.05)">${st.er}</td><td style="font-family:var(--mono);font-weight:600;background:rgba(74,144,217,.05)">${st.total}</td><td style="background:rgba(74,144,217,.05)">${st.total>0?pctBadge(st.pct):'—'}</td><td style="font-family:var(--mono);font-weight:600;color:var(--blue);background:rgba(245,166,35,.05)">${sb.ac}</td><td style="font-family:var(--mono);font-weight:600;color:var(--red);background:rgba(245,166,35,.05)">${sb.er}</td><td style="font-family:var(--mono);font-weight:600;background:rgba(245,166,35,.05)">${sb.total}</td><td style="background:rgba(245,166,35,.05)">${sb.total>0?pctBadge(sb.pct):'—'}</td><td style="background:rgba(245,166,35,.05)"></td><td style="font-family:var(--mono);font-weight:600">${gTot}</td><td style="font-weight:700;color:${gPct>=70?'var(--accent)':gPct>=50?'var(--amber)':gTot>0?'var(--red)':'var(--text3)'}">${gTot>0?gPct+'%':'—'}</td><td><button class="btn btn-sm btn-danger" onclick="removeMat('${esc(matNome)}')">✕</button></td></tr>`;
+    tops.forEach(top=>{
+      const ei=S.edital.indexOf(top);
+      const tTot=(+(top.acertosT||0))+(+(top.errosT||0));
+      const bTot=(+(top.acertosB||0))+(+(top.errosB||0));
+      const tPct=calcPct(+(top.acertosT||0),tTot),bPct=calcPct(+(top.acertosB||0),bTot);
+      const gtot=tTot+bTot,gac=(+(top.acertosT||0))+(+(top.acertosB||0)),gpct=calcPct(gac,gtot);
+      html+=`<tr><td style="padding-left:20px"><input type="text" value="${esc(top.nome)}" onchange="S.edital[${ei}].nome=this.value;save()" style="width:162px" placeholder="Tópico"></td><td><select onchange="S.edital[${ei}].metodo=this.value;save()" style="width:112px"><option ${top.metodo==='PDF'?'selected':''}>PDF</option><option ${top.metodo==='Vídeo'?'selected':''}>Vídeo</option><option ${top.metodo==='PDF + Questões'?'selected':''}>PDF + Questões</option><option ${top.metodo==='Direto por Questões'?'selected':''}>Direto por Questões</option></select></td><td><input type="text" value="${esc(top.nota)}" onchange="S.edital[${ei}].nota=this.value;save()" style="width:135px" placeholder="Anotações..."></td><td style="background:rgba(74,144,217,.04)"><input type="number" value="${top.acertosT||0}" min="0" onchange="S.edital[${ei}].acertosT=Math.max(0,+this.value);save();renderEdital()" style="width:52px"></td><td style="background:rgba(74,144,217,.04)"><input type="number" value="${top.errosT||0}" min="0" onchange="S.edital[${ei}].errosT=Math.max(0,+this.value);save();renderEdital()" style="width:52px"></td><td style="background:rgba(74,144,217,.04);font-family:var(--mono)">${tTot}</td><td style="background:rgba(74,144,217,.04)">${tTot>0?pctBadge(tPct):'—'}</td><td style="background:rgba(245,166,35,.04)"><input type="number" value="${top.acertosB||0}" min="0" onchange="S.edital[${ei}].acertosB=Math.max(0,+this.value);save();renderEdital()" style="width:52px"></td><td style="background:rgba(245,166,35,.04)"><input type="number" value="${top.errosB||0}" min="0" onchange="S.edital[${ei}].errosB=Math.max(0,+this.value);save();renderEdital()" style="width:52px"></td><td style="background:rgba(245,166,35,.04);font-family:var(--mono)">${bTot}</td><td style="background:rgba(245,166,35,.04)">${bTot>0?pctBadge(bPct):'—'}</td><td style="background:rgba(62,207,142,.04);text-align:center"><input type="checkbox" ${top.teoriaOk?'checked':''} onchange="S.edital[${ei}].teoriaOk=this.checked;save();renderEdital();renderTeoria()"></td><td style="font-family:var(--mono)">${gtot}</td><td style="font-weight:600;color:${gpct>=70?'var(--accent)':gpct>=50?'var(--amber)':gtot>0?'var(--red)':'var(--text3)'}">${gtot>0?gpct+'%':'—'}</td><td><button class="btn btn-sm btn-danger" onclick="S.edital.splice(${ei},1);save();renderEdital();renderTeoria()">✕</button></td></tr>`;
+    });
+  });
+  document.getElementById('tbody-edital').innerHTML=html||`<tr><td colspan="15" style="text-align:center;padding:20px;color:var(--text3)">Clique em "+ Matéria" para começar.</td></tr>`;
+}
+function addMateria(){const nome=prompt('Nome da matéria:');if(!nome||!nome.trim())return;const n=nome.trim().toUpperCase();if(S.edital.find(e=>e.tipo==='mat'&&e.nome===n))return alert('Matéria já existe.');S.edital.push({id:uid(),tipo:'mat',nome:n});save();renderEdital();renderMetas();renderTeoria();renderQuestoes();renderRevisao()}
+function addTopico(){
+  const mats=getMaterias();if(mats.length===0)return alert('Cadastre uma matéria primeiro.');
+  const mn=mats.length===1?mats[0]:(prompt('Matéria:\n'+mats.join('\n'))||'').trim();
+  if(!mn||!mats.includes(mn))return alert('Matéria não encontrada.');
+  const matIdx=S.edital.findIndex(e=>e.tipo==='mat'&&e.nome===mn);
+  const topsIdxs=S.edital.map((e,i)=>e.tipo==='topico'&&e.matNome===mn?i:-1).filter(i=>i>=0);
+  const insertAt=topsIdxs.length>0?topsIdxs[topsIdxs.length-1]+1:matIdx+1;
+  S.edital.splice(insertAt,0,{id:uid(),tipo:'topico',matNome:mn,nome:'',metodo:'PDF',nota:'',acertosT:0,errosT:0,acertosB:0,errosB:0,teoriaOk:false});
+  save();renderEdital();
+}
+function removeMat(matNome){if(!confirm(`Remover "${matNome}"?`))return;S.edital=S.edital.filter(e=>!(e.tipo==='mat'&&e.nome===matNome)&&!(e.tipo==='topico'&&e.matNome===matNome));save();renderEdital();renderMetas();renderTeoria();renderQuestoes();renderRevisao()}
+
+// ── METAS ──
+function renderMetas(){
+  if(!S.metasByMat)S.metasByMat={};
+  const mats=getMaterias();
+  document.getElementById('m-qtd-materias').textContent=mats.length;
+  if(S.metas.totalQuestoes)document.getElementById('m-total-questoes').value=S.metas.totalQuestoes;
+  if(S.metas.dataProva)document.getElementById('m-data-prova').value=S.metas.dataProva;
+  if(S.metas.metaDiaria)document.getElementById('m-meta-dia').value=S.metas.metaDiaria;
+  const dias=diasAte(S.metas.dataProva);
+  document.getElementById('m-dias-restantes').textContent=dias!==null?dias+' dias':'—';
+  mats.forEach(n=>{if(!S.metasByMat[n])S.metasByMat[n]={dif:'1',nivel:'Iniciante',metodo:'PDF',questoes:0,peso:1,horas:1,qCiclo:0,bloco:''}});
+  const totalPond=mats.reduce((s,n)=>s+(+(S.metasByMat[n]||{}).questoes||0)*(+(S.metasByMat[n]||{}).peso||1),0);
+  const blocoColors={'Básico':'b-blue','Específico':'b-purple','Especializado':'b-amber'};
+  document.getElementById('tbody-metas').innerHTML=mats.length===0?`<tr><td colspan="11" style="text-align:center;padding:14px;color:var(--text3)">Cadastre matérias no Mapa do Edital.</td></tr>`
+    :mats.map(n=>{
+      const m=S.metasByMat[n]||{};
+      const pond=(+m.questoes||0)*(+m.peso||1);
+      const imp=totalPond>0?(pond/totalPond*100).toFixed(1)+'%':'0%';
+      return`<tr><td style="font-weight:500;color:var(--text)">${n}</td><td><select onchange="S.metasByMat['${esc(n)}'].bloco=this.value;save();renderMetas();renderEdital()" style="width:105px"><option ${m.bloco===''?'selected':''}></option><option ${m.bloco==='Básico'?'selected':''}>Básico</option><option ${m.bloco==='Específico'?'selected':''}>Específico</option><option ${m.bloco==='Especializado'?'selected':''}>Especializado</option></select></td><td><select onchange="S.metasByMat['${esc(n)}'].dif=this.value;save()" style="width:48px"><option ${m.dif=='1'?'selected':''}>1</option><option ${m.dif=='2'?'selected':''}>2</option><option ${m.dif=='3'?'selected':''}>3</option><option ${m.dif=='4'?'selected':''}>4</option><option ${m.dif=='5'?'selected':''}>5</option></select></td><td><select onchange="S.metasByMat['${esc(n)}'].nivel=this.value;save();renderTeoria()" style="width:112px"><option ${(m.nivel||'Iniciante')==='Iniciante'?'selected':''}>Iniciante</option><option ${m.nivel==='Intermediário'?'selected':''}>Intermediário</option><option ${m.nivel==='Avançado'?'selected':''}>Avançado</option></select></td><td><select onchange="S.metasByMat['${esc(n)}'].metodo=this.value;save();renderTeoria()" style="width:135px"><option ${m.metodo==='PDF'?'selected':''}>PDF</option><option ${m.metodo==='Vídeo'?'selected':''}>Vídeo</option><option ${m.metodo==='PDF + Questões'?'selected':''}>PDF + Questões</option><option ${m.metodo==='Direto por Questões'?'selected':''}>Direto por Questões</option></select></td><td><input type="number" value="${m.questoes||0}" min="0" onchange="S.metasByMat['${esc(n)}'].questoes=Math.max(0,+this.value);save();renderMetas();renderQuestoes()" style="width:62px"></td><td><input type="number" value="${m.peso||1}" min="1" onchange="S.metasByMat['${esc(n)}'].peso=Math.max(1,+this.value);save();renderMetas()" style="width:46px"></td><td style="font-family:var(--mono)">${pond}</td><td><span class="badge b-blue">${imp}</span></td><td><input type="number" value="${m.horas||1}" min="0.5" step="0.5" onchange="S.metasByMat['${esc(n)}'].horas=+this.value;save();renderTeoria()" style="width:48px"> h</td><td><input type="number" value="${m.qCiclo||m.questoes||0}" min="0" onchange="S.metasByMat['${esc(n)}'].qCiclo=Math.max(0,+this.value);save();renderQuestoes()" style="width:62px"></td></tr>`;
+    }).join('');
+}
+function saveMetas(){
+  S.metas.totalQuestoes=+document.getElementById('m-total-questoes').value;
+  S.metas.dataProva=document.getElementById('m-data-prova').value;
+  S.metas.metaDiaria=+document.getElementById('m-meta-dia').value||2;
+  save();renderMetas();
+}
+
+// ── CICLO BUILDER ──
+function renderCicloBuilder(){
+  if(!S.cicloBuilder)S.cicloBuilder=[];
+  const tipos={teoria:{icon:'📖',cls:'type-teoria',label:'Teoria'},questoes:{icon:'✏️',cls:'type-questoes',label:'Questões'},revisao:{icon:'🔁',cls:'type-revisao',label:'Revisão'}};
+  const concluidos=S.cicloBuilder.filter(sl=>sl.done).length;
+  const pct=S.cicloBuilder.length>0?Math.round(concluidos/S.cicloBuilder.length*100):0;
+  document.getElementById('ciclo-slots').innerHTML=S.cicloBuilder.length===0?`<p style="color:var(--text3);font-size:12px;padding:8px">Nenhum bloco.</p>`:
+    S.cicloBuilder.map((sl,i)=>{const t=tipos[sl.tipo]||tipos.teoria;return`<div class="ciclo-slot" style="${sl.done?'opacity:.5':''}"><input type="checkbox" ${sl.done?'checked':''} onchange="S.cicloBuilder[${i}].done=this.checked;save();renderCicloBuilder()"><span class="ciclo-slot-type ${t.cls}">${t.icon} ${t.label}</span><span style="font-weight:500;color:var(--text);font-size:13px;flex:1">${sl.mat||'—'}</span><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${sl.tempo||'—'}</span>${sl.obs?`<span style="font-size:11px;color:var(--text2)">${sl.obs}</span>`:''}<button class="btn btn-sm btn-danger" onclick="S.cicloBuilder.splice(${i},1);save();renderCicloBuilder()">✕</button></div>`}).join('');
+  const totalMin=S.cicloBuilder.reduce((s,sl)=>s+horasToMin(sl.tempo||''),0);
+  const byTipo={teoria:0,questoes:0,revisao:0};S.cicloBuilder.forEach(sl=>{byTipo[sl.tipo]=(byTipo[sl.tipo]||0)+horasToMin(sl.tempo||'')});
+  document.getElementById('ciclo-resumo').innerHTML=`<div style="display:flex;gap:14px;flex-wrap:wrap"><div><span style="color:var(--text3)">Total: </span><strong>${minToStr(totalMin)}</strong></div><div><span style="color:var(--blue)">📖 ${minToStr(byTipo.teoria)}</span></div><div><span style="color:var(--amber)">✏️ ${minToStr(byTipo.questoes)}</span></div><div><span style="color:var(--accent)">🔁 ${minToStr(byTipo.revisao)}</span></div><div><span style="color:var(--text3)">${S.cicloBuilder.length} blocos</span></div></div>`;
+  const progEl=document.getElementById('ciclo-prog');if(progEl)progEl.style.width=pct+'%';
+  const progLbl=document.getElementById('ciclo-prog-label');if(progLbl)progLbl.textContent=pct+'% concluído ('+concluidos+'/'+S.cicloBuilder.length+')';
+}
+function addSlotCiclo(){
+  const mat=document.getElementById('cb-mat').value;const tipo=document.getElementById('cb-tipo').value;
+  const tempo=document.getElementById('cb-tempo').value;const obs=document.getElementById('cb-obs').value;
+  if(!mat)return alert('Selecione uma matéria.');
+  S.cicloBuilder.push({mat,tipo,tempo,obs,done:false});save();renderCicloBuilder();
+  document.getElementById('cb-tempo').value='1:00';document.getElementById('cb-obs').value='';
+}
+function limparCicloBuilder(){if(!confirm('Limpar o ciclo?'))return;S.cicloBuilder=[];save();renderCicloBuilder()}
+
+// ── TEORIA ──
+function renderTeoria(){
+  if(!S.metasByMat)S.metasByMat={};if(!S.teoriaTempos)S.teoriaTempos={};if(!S.teoriaCheck)S.teoriaCheck={};
+  const mats=getMaterias().filter(n=>!isMatTeoriaConcluida(n));
+  let totalMetaMin=0,totalEstMin=0;
+  const blocoColors={'Básico':'b-blue','Específico':'b-purple','Especializado':'b-amber'};
+  document.getElementById('tbody-teoria').innerHTML=mats.length===0?`<tr><td colspan="7" style="text-align:center;padding:14px;color:var(--text3)">${getMaterias().length===0?'Cadastre matérias no Mapa do Edital.':'🎉 Teoria de todas as matérias concluída!'}</td></tr>`
+    :mats.map(n=>{
+      const m=S.metasByMat[n]||{};const horas=+m.horas||1;totalMetaMin+=horas*60;
+      const tempo=S.teoriaTempos[n]||'0:00:00';totalEstMin+=horasToMin(tempo);
+      return`<tr><td style="font-weight:500;color:var(--text)">${n}</td><td>${m.bloco?`<span class="badge ${blocoColors[m.bloco]||'b-gray'}">${m.bloco}</span>`:'—'}</td><td><span class="badge b-blue">${m.nivel||'Iniciante'}</span></td><td style="color:var(--text2);font-size:11px">${m.metodo||'PDF'}</td><td style="font-family:var(--mono)">${horas}h</td><td><input type="text" value="${tempo}" onchange="S.teoriaTempos['${esc(n)}']=this.value;save();renderTeoria()" style="width:82px" placeholder="0:00:00"></td><td style="text-align:center"><input type="checkbox" ${(S.teoriaCheck[n]||false)?'checked':''} onchange="S.teoriaCheck['${esc(n)}']=this.checked;save()"></td></tr>`;
+    }).join('');
+  document.getElementById('total-tempo-meta').textContent=minToStr(totalMetaMin);
+  document.getElementById('total-tempo-teoria').textContent=minToStr(totalEstMin);
+  document.getElementById('total-teoria').textContent=`${mats.length} matéria(s) pendente(s)`;
+}
+function limparTeoria(){if(!confirm('Limpar todos os tempos e checks de teoria?'))return;S.teoriaTempos={};S.teoriaCheck={};save();renderTeoria()}
+
+// ── QUESTÕES ──
+function renderQuestoes(){
+  if(!S.questoes)S.questoes={};if(!S.metasByMat)S.metasByMat={};
+  const mats=getMaterias();let totAc=0,totEr=0,totQ=0;
+  document.getElementById('tbody-questoes').innerHTML=mats.length===0?`<tr><td colspan="7" style="text-align:center;padding:14px;color:var(--text3)">Cadastre matérias no Mapa do Edital.</td></tr>`
+    :mats.map(n=>{
+      const q=S.questoes[n]||{acertos:0,erros:0,tempo:'0:00:00'};
+      const m=S.metasByMat[n]||{};
+      const total=Math.max(0,(+q.acertos||0)+(+q.erros||0));
+      const p=calcPct(Math.max(0,+q.acertos||0),total);
+      totAc+=Math.max(0,+q.acertos||0);totEr+=Math.max(0,+q.erros||0);totQ+=total;
+      const minQ=+(m.qCiclo||m.questoes||0);
+      const al=total>0&&total<minQ;
+      return`<tr ${al?'class="row-alert"':''}><td style="font-weight:500;color:var(--text)">${n}${al?' <span class="badge b-red">⚠ abaixo</span>':''}</td><td style="font-family:var(--mono)">${minQ}</td><td><input type="number" value="${Math.max(0,+q.acertos||0)}" min="0" onchange="if(!S.questoes['${esc(n)}'])S.questoes['${esc(n)}']={};S.questoes['${esc(n)}'].acertos=Math.max(0,+this.value);save();renderQuestoes()" style="width:62px"></td><td><input type="number" value="${Math.max(0,+q.erros||0)}" min="0" onchange="if(!S.questoes['${esc(n)}'])S.questoes['${esc(n)}']={};S.questoes['${esc(n)}'].erros=Math.max(0,+this.value);save();renderQuestoes()" style="width:62px"></td><td style="font-family:var(--mono)">${total}</td><td>${total>0?pctBadge(p):'<span class="badge b-gray">—</span>'}</td><td><input type="text" value="${q.tempo||'0:00:00'}" onchange="if(!S.questoes['${esc(n)}'])S.questoes['${esc(n)}']={};S.questoes['${esc(n)}'].tempo=this.value;save();renderQuestoes()" style="width:82px" placeholder="0:00:00"></td></tr>`;
+    }).join('');
+  const pctG=calcPct(totAc,totQ);
+  ['q-ac-total','q-total-acertos'].forEach(id=>document.getElementById(id).textContent=totAc);
+  ['q-er-total','q-total-erros'].forEach(id=>document.getElementById(id).textContent=totEr);
+  document.getElementById('q-tot-total').textContent=totQ;
+  ['q-pct-total','q-pct'].forEach(id=>document.getElementById(id).textContent=pctG+'%');
+  document.getElementById('q-min-total').textContent=mats.reduce((s,n)=>s+(+(S.metasByMat[n]||{}).qCiclo||+(S.metasByMat[n]||{}).questoes||0),0);
+  document.getElementById('q-tempo-total').textContent=minToStr(Object.values(S.questoes||{}).reduce((s,q)=>s+horasToMin(q.tempo||''),0));
+}
+function limparQuestoes(){if(!confirm('Limpar questões do ciclo atual?'))return;S.questoes={};save();renderQuestoes()}
+function copiarQuestoes(){document.getElementById('modal-copiar').classList.add('open')}
+function fecharModal(id){document.getElementById(id).classList.remove('open')}
+function confirmarCopiar(){
+  const num=+document.getElementById('modal-ciclo-num').value||S.ciclos.length+1;
+  getMaterias().forEach(n=>{const q=S.questoes[n]||{acertos:0,erros:0,tempo:'0:00:00'};const total=(+q.acertos||0)+(+q.erros||0);S.ciclosMat.push({ciclo:num,mat:n,acertos:+q.acertos||0,erros:+q.erros||0,total,pct:calcPct(+q.acertos||0,total),tempo:q.tempo||'0:00:00'})});
+  save();renderCiclos();fecharModal('modal-copiar');showPage('ciclos');
+}
+function colarQuestoesCiclo(){const num=+document.getElementById('c-num').value||S.ciclos.length+1;document.getElementById('modal-ciclo-num').value=num;confirmarCopiar()}
+
+// ── REVISÃO ──
+function renderRevisao(){
+  if(!S.revisao)S.revisao={};
+  const mats=getMaterias();let totMin=0;
+  document.getElementById('tbody-revisao').innerHTML=mats.length===0?`<tr><td colspan="3" style="text-align:center;padding:14px;color:var(--text3)">Cadastre matérias no Mapa do Edital.</td></tr>`
+    :mats.map(n=>{const r=S.revisao[n]||{tempo:'0:00:00',check:false};totMin+=horasToMin(r.tempo);
+      return`<tr><td style="font-weight:500;color:${r.check?'var(--text3)':'var(--text)'}">${n}</td><td><input type="text" value="${r.tempo||'0:00:00'}" onchange="if(!S.revisao['${esc(n)}'])S.revisao['${esc(n)}']={};S.revisao['${esc(n)}'].tempo=this.value;save();renderRevisao()" style="width:82px"></td><td style="text-align:center"><input type="checkbox" ${r.check?'checked':''} onchange="if(!S.revisao['${esc(n)}'])S.revisao['${esc(n)}']={};S.revisao['${esc(n)}'].check=this.checked;save()"></td></tr>`;
+    }).join('');
+  document.getElementById('rev-total').textContent=minToHHMM(totMin);
+}
+function limparRevisao(){if(!confirm('Limpar revisão?'))return;S.revisao={};save();renderRevisao()}
+
+// ── CICLOS ──
+function renderCiclos(){
+  document.getElementById('tbody-ciclos').innerHTML=S.ciclos.map((c,i)=>{
+    const tTotal=horasToMin(c.horas||'')+horasToMin(c.tq||'')+horasToMin(c.tr||'');
+    return`<tr><td><span class="badge b-purple">#${c.num}</span></td><td>${c.inicio||'—'}</td><td>${c.fim||'—'}</td><td style="font-family:var(--mono)">${c.horas||'0'}</td><td style="font-family:var(--mono)">${c.questoes||0}</td><td>${pctBadge(+c.pct||0)}</td><td style="font-family:var(--mono)">${c.tq||'—'}</td><td style="font-family:var(--mono)">${c.tr||'—'}</td><td style="font-family:var(--mono);color:var(--accent)">${minToStr(tTotal)}</td><td><button class="btn btn-sm btn-danger" onclick="S.ciclos.splice(${i},1);save();renderCiclos();renderDashboard()">✕</button></td></tr>`;
+  }).join('')||`<tr><td colspan="10" style="text-align:center;padding:12px;color:var(--text3)">Nenhum ciclo.</td></tr>`;
+  document.getElementById('tbody-ciclos-mat').innerHTML=S.ciclosMat.map((c,i)=>`<tr><td><span class="badge b-purple">#${c.ciclo||'?'}</span></td><td style="font-weight:500;color:var(--text)">${c.mat||'—'}</td><td style="font-family:var(--mono)">${c.acertos||0}</td><td style="font-family:var(--mono)">${c.erros||0}</td><td style="font-family:var(--mono)">${c.total||0}</td><td>${pctBadge(+c.pct||0)}</td><td style="font-family:var(--mono)">${c.tempo||'—'}</td><td><button class="btn btn-sm btn-danger" onclick="S.ciclosMat.splice(${i},1);save();renderCiclos()">✕</button></td></tr>`).join('')||`<tr><td colspan="8" style="text-align:center;padding:12px;color:var(--text3)">Nenhum dado por matéria.</td></tr>`;
+}
+function addCiclo(){
+  const c={num:+document.getElementById('c-num').value||S.ciclos.length+1,inicio:document.getElementById('c-inicio').value,fim:document.getElementById('c-fim').value,horas:document.getElementById('c-horas').value,questoes:+document.getElementById('c-questoes').value,pct:+document.getElementById('c-pct').value,tq:document.getElementById('c-tq').value,tr:document.getElementById('c-tr').value};
+  S.ciclos.push(c);save();renderCiclos();renderDashboard();
+  ['c-num','c-inicio','c-fim','c-horas','c-questoes','c-pct','c-tq','c-tr'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const totH=S.horas.reduce((s,h)=>s+h.minutos,0);
+  document.getElementById('d-horas').textContent=minToStr(totH);
+  document.getElementById('d-ciclos').textContent=S.ciclos.length;
+  const totQ=S.ciclos.reduce((s,c)=>s+(+c.questoes||0),0);
+  document.getElementById('d-questoes').textContent=totQ;
+  const media=S.ciclos.length>0?Math.round(S.ciclos.reduce((s,c)=>s+(+c.pct||0),0)/S.ciclos.length):0;
+  document.getElementById('d-media').textContent=media+'%';
+  const mats=getMaterias();
+  document.getElementById('d-progresso-materias').innerHTML=mats.length===0?'<p style="color:var(--text3);font-size:12px">Nenhuma matéria.</p>'
+    :mats.map(n=>{const tops=getTopicos(n);const concl=tops.filter(t=>t.teoriaOk).length;const p=tops.length>0?Math.round(concl/tops.length*100):0;
+      return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:12px">${n}</span><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${concl}/${tops.length} · ${p}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${p}%"></div></div></div>`}).join('');
+  document.getElementById('d-ciclos-tbl').innerHTML=S.ciclos.length===0?'<tr><td colspan="4" style="color:var(--text3);text-align:center;padding:10px">Nenhum ciclo</td></tr>'
+    :S.ciclos.map(c=>`<tr><td><span class="badge b-purple">#${c.num}</span></td><td style="font-family:var(--mono)">${c.horas||'—'}</td><td style="font-family:var(--mono)">${c.questoes||0}</td><td>${pctBadge(+c.pct||0)}</td></tr>`).join('');
+  const hMat={};S.horas.forEach(h=>{const k=h.mat||'Geral';hMat[k]=(hMat[k]||0)+h.minutos});
+  const maxH=Math.max(...Object.values(hMat),1);
+  document.getElementById('d-horas-mat').innerHTML=Object.keys(hMat).length===0?'<p style="color:var(--text3);font-size:12px">Nenhuma hora.</p>'
+    :Object.entries(hMat).sort((a,b)=>b[1]-a[1]).map(([m,min])=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:12px">${m}</span><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${minToStr(min)}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(min/maxH*100)}%;background:var(--blue)"></div></div></div>`).join('');
+  if(!S.questoes)S.questoes={};
+  const maxA=Math.max(...mats.map(n=>{const q=S.questoes[n]||{};return(+q.acertos||0)+(+q.erros||0)}),1);
+  document.getElementById('d-acertos-mat').innerHTML=mats.length===0?'<p style="color:var(--text3);font-size:12px">Nenhuma matéria.</p>'
+    :mats.map(n=>{const q=S.questoes[n]||{acertos:0,erros:0};const total=(+q.acertos||0)+(+q.erros||0);const p=calcPct(+q.acertos||0,total);const fc=p>=70?'var(--accent)':p>=50?'var(--amber)':p>0?'var(--red)':'var(--bg4)';
+      return`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:2px"><span style="font-size:12px">${n}</span><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">${q.acertos||0}/${total} · ${p}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${total>0?Math.round((+q.acertos||0)/maxA*100):0}%;background:${fc}"></div></div></div>`;
+    }).join('');
+  renderGrafico();
+}
+
+// ── SELECTS ──
+function populateSelects(){
+  const mats=getMaterias();
+  ['h-materia','chrono-mat','cb-mat'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;const val=sel.value;
+    sel.innerHTML='<option value="">Selecione...</option>'+mats.map(n=>`<option value="${n}">${n}</option>`).join('');
+    if(val)sel.value=val;
+  });
+}
+
+// ── RENDER ALL ──
+function renderAll(){
+  renderInicio();renderHoras();renderSimMaterias();renderEdital();renderMetas();
+  calcularPrioridades();renderCicloBuilder();renderTeoria();renderQuestoes();
+  renderRevisao();renderCiclos();renderDashboard();renderHistSimulados();
+}
+
+function seedIfEmpty() {
+  if (S.edital.length === 0) {
+  // DADOS DO EDITAL CGU 2021 - AFFC - AUDITORIA E FISCALIZAÇÃO
+  const editalCGU=[
+    // CONHECIMENTOS BÁSICOS
+    {mat:'LÍNGUA PORTUGUESA',bloco:'Básico',questoes:15,peso:1,horas:2,qCiclo:8,tops:[
+      'Interpretação de texto: decodificação dos diversos tipos de mensagem',
+      'Compreensão de texto: processos que constroem os significados textuais',
+      'Características básicas da textualidade',
+      'Estruturas linguísticas: classes de palavras',
+      'Pragmática na linguagem: significado contextual',
+      'Semântica vocabular: antônimos, sinônimos, homônimos, parônimos e heterônimos',
+      'Modos de organização discursiva: descrição, narração, exposição informativa e argumentativa',
+      'Organização das frases nas situações comunicativas',
+      'Linguagem lógica e figurada; níveis de linguagem',
+      'Tipos de discurso: direto, indireto e indireto livre',
+      'Funções da linguagem',
+    ]},
+    {mat:'LÍNGUA INGLESA',bloco:'Básico',questoes:5,peso:1,horas:1,qCiclo:3,tops:[
+      'Estratégias de leitura: compreensão geral, informações específicas, análise e síntese',
+      'Inferência e predição; organização semântica e discursiva',
+      'Sinonímia e antonímia; funções retóricas; metáfora e metonímia',
+      'Aspectos sintático-gramaticais: artigos, tempos/modos verbais, preposições, conjunções',
+      'Pronomes, modais, concordância, formação de palavras, expressões idiomáticas',
+      'Relações de subordinação/coordenação, voz passiva, discurso direto/indireto',
+    ]},
+    {mat:'ADMINISTRAÇÃO PÚBLICA E POLÍTICAS PÚBLICAS',bloco:'Básico',questoes:10,peso:1,horas:2,qCiclo:5,tops:[
+      'Políticas públicas: ciclo (agenda, formulação, processo decisório, implementação, avaliação)',
+      'Processos participativos: conselhos de gestão, orçamento participativo, parcerias',
+      'Governo Aberto (Decreto nº 10.160/2019)',
+      'Governo Digital (Decreto nº 10.332/2020)',
+      'Planejamento nas organizações públicas: ciclo PDCA, análise ambiental, objetivos, missão, visão, valores',
+      'Gestão por resultados na produção de serviços públicos',
+      'Princípios de governabilidade e governança; clientelismo, corporativismo, neocorporativismo',
+      'Decreto nº 9.203/2017 - Política de Governança da Administração Pública Federal',
+      'Corrupção e políticas públicas: fatores e qualidade das políticas',
+      'Papel das instituições nas políticas públicas; indicadores de políticas públicas',
+    ]},
+    // CONHECIMENTOS ESPECÍFICOS
+    {mat:'DIREITO CONSTITUCIONAL',bloco:'Específico',questoes:10,peso:1,horas:2,qCiclo:5,tops:[
+      'CF/1988: Princípios fundamentais',
+      'Aplicabilidade das normas constitucionais: eficácia plena, contida e limitada; normas programáticas',
+      'Direitos e garantias fundamentais: direitos individuais, coletivos, sociais, políticos, partidos',
+      'Organização político-administrativa: Estado federal, União, estados, DF, municípios e territórios',
+      'Administração Pública: disposições gerais e servidores públicos',
+      'Poder Executivo: atribuições e responsabilidades do Presidente da República',
+      'Poder Legislativo: estrutura, funcionamento, atribuições, processo legislativo',
+      'Fiscalização contábil, financeira e orçamentária; CPIs',
+      'Poder Judiciário: disposições gerais, órgãos, competências, CNJ',
+      'Funções essenciais à justiça: Ministério Público e Advocacia Pública',
+      'Ordem Econômica e Financeira: princípios gerais da atividade econômica',
+    ]},
+    {mat:'DIREITO ADMINISTRATIVO',bloco:'Específico',questoes:14,peso:1,horas:3,qCiclo:7,tops:[
+      'Estado, governo e Administração Pública: conceitos e elementos',
+      'Direito Administrativo: conceito, objeto e fontes',
+      'Ato administrativo: conceito, requisitos, atributos, classificação, espécies',
+      'Extinção do ato: cassação, anulação, revogação, convalidação; decadência administrativa',
+      'Agentes públicos: conceito, espécies, cargo/emprego/função, provimento, vacância',
+      'Agentes públicos: efetividade, estabilidade, vitaliciedade, remuneração, direitos/deveres',
+      'Responsabilidade e PAD; Lei nº 8.112/1990',
+      'Poderes da Administração Pública: hierárquico, disciplinar, regulamentar e de polícia',
+      'Princípios expressos e implícitos da Administração Pública',
+      'Responsabilidade civil do Estado: comissiva/omissiva, requisitos, excludentes, reparação, regresso',
+      'Serviços públicos: conceito, elementos, formas, delegação, classificação; Lei nº 13.460/2018',
+      'Organização administrativa: centralização, descentralização, adm. direta/indireta, autarquias, fundações, estatais',
+      'Controle da Administração Pública: interno, judicial e legislativo; improbidade (Lei 8.429/1992)',
+      'Processo administrativo: Lei nº 9.784/1999',
+      'Licitações e contratos: Lei nº 8.666/1993 e Lei nº 14.133/2021',
+      'Ética Pública: Decreto 1.171/1994, Decreto 6.029/2007, Lei 12.813/2013, EM 37/2000',
+      'LINDB (Decreto-Lei 4.657/1942) e Decreto 9.830/2019',
+      'Direito de acesso à informação: Lei 12.527/2011, Decreto 7.724/2012, Decreto 8.777/2016',
+      'LGPD aplicada ao Poder Público: Capítulos II e IV da Lei 13.709/2018',
+    ]},
+    {mat:'ADMINISTRAÇÃO FINANCEIRA E ORÇAMENTÁRIA',bloco:'Específico',questoes:5,peso:1,horas:1,qCiclo:3,tops:[
+      'Orçamento Público: conceitos e princípios orçamentários',
+      'PPA, LDO e LOA segundo a CF/1988',
+      'Lei de Responsabilidade Fiscal - LRF',
+      'Classificação econômica da Receita e Despesa pública',
+      'Conceito e estágios da Receita e Despesa pública',
+      'Gestão das finanças públicas: sistema de planejamento, orçamento e programação financeira (Lei 10.180/2001)',
+    ]},
+    {mat:'FUNDAMENTOS DE AUDITORIA GOVERNAMENTAL',bloco:'Específico',questoes:6,peso:1,horas:1.5,qCiclo:3,tops:[
+      'Sistema de Controle Interno do Poder Executivo Federal: finalidades, atividades, organização (Lei 10.180/2001 e Decreto 3.591/2000)',
+      'Manual de Orientações Técnicas da Auditoria Interna Governamental - MOT 2017',
+      'Instrução Normativa SFC nº 3/2017',
+    ]},
+    {mat:'CGU: ORGANIZAÇÃO, COMPETÊNCIAS E SISTEMAS ESTRUTURANTES',bloco:'Específico',questoes:5,peso:1,horas:1,qCiclo:3,tops:[
+      'Lei nº 13.844/2019: áreas de competência, competências do Ministro e estrutura básica da CGU',
+      'Decreto nº 9.681/2019: natureza, competência, estrutura organizacional, competências das unidades',
+      'Sistema de Controle Interno do Poder Executivo Federal (Lei 10.180/2001 e Decreto 3.591/2000)',
+      'Sistema de Correição do Poder Executivo Federal (Decreto 5.480/2005)',
+      'Sistema de Ouvidorias Públicas do Poder Executivo Federal (Decreto 9.492/2018)',
+      'Sistema de Integridade Pública do Poder Executivo Federal (Decreto 10.756/2021)',
+    ]},
+    // CONHECIMENTOS ESPECIALIZADOS - AUDITORIA E FISCALIZAÇÃO
+    {mat:'AUDITORIA GOVERNAMENTAL E CONTROLE INTERNO',bloco:'Especializado',questoes:10,peso:1,horas:3,qCiclo:5,tops:[
+      'Sistema de Controle Interno do Poder Executivo Federal (Lei 10.180/2001 e Decreto 3.591/2000)',
+      'Manual de Orientações Técnicas da Auditoria Interna Governamental - MOT 2017',
+      'Instrução Normativa SFC nº 3/2017',
+      'Orientação Prática: Relatório de Auditoria (Portaria nº 1.037/2019)',
+      'Orientação Prática: Auditoria Anual de Contas (Portaria nº 2.035/2019)',
+      'NBC TA Estrutura Conceitual para Trabalhos de Asseguração',
+      'IPPF/IIA: Estrutura Internacional de Práticas Profissionais do Instituto dos Auditores Internos',
+      'O papel da auditoria interna na gestão de riscos',
+      'O modelo de três linhas',
+      'Instrução Normativa Conjunta MPOG/CGU nº 1/2016',
+    ]},
+    {mat:'CONTABILIDADE APLICADA AO SETOR PÚBLICO',bloco:'Especializado',questoes:10,peso:1,horas:3,qCiclo:5,tops:[
+      'NBC TSP Estrutura Conceitual: objetivos, usuários, características qualitativas, entidade que reporta',
+      'Elementos das Demonstrações Contábeis; Reconhecimento; Mensuração de Ativos e Passivos',
+      'Estrutura e conteúdo das demonstrações contábeis: Lei 4.320/1964, NBC TSP 11 e MCASP (9ª ed.)',
+      'PCASP: aspectos gerais, conceito, objetivos, estrutura, natureza da informação, código e atributos',
+      'Lei Complementar 101/2000: renúncia de receita, geração de despesas, despesas obrigatórias de caráter continuado',
+      'LRF: dívida e endividamento, escrituração e consolidação, Relatório de Gestão Fiscal',
+      'Procedimentos Contábeis Orçamentários e Patrimoniais - MCASP (9ª ed.)',
+      'Sistema de Informações de Custos: NBC T 16.11',
+      'Manual de Informações de Custos do Governo Federal (Portaria STN nº 518/2018)',
+    ]},
+    {mat:'AVALIAÇÃO DE POLÍTICAS PÚBLICAS',bloco:'Especializado',questoes:10,peso:1,horas:2,qCiclo:5,tops:[
+      'Análise Ex Ante: Guia prático Casa Civil/IPEA (2018), volume 1',
+      'Análise Ex Post: Guia prático Casa Civil/IPEA (2018), volume 2',
+      'CMAP: Conselho de Monitoramento e Avaliação de Políticas Públicas (Decreto 9.834/2019)',
+    ]},
+    {mat:'FINANÇAS PÚBLICAS',bloco:'Especializado',questoes:10,peso:1,horas:3,qCiclo:5,tops:[
+      'Objetivos, metas, abrangência e definição; funções do Estado',
+      'Função do bem-estar; políticas alocativas, distributivas e de estabilização',
+      'Instrumentos e recursos da economia pública: política fiscal, regulatória e monetária',
+      'Tributação: tipos, progressividade, regressividade e neutralidade',
+      'Federalismo fiscal',
+      'Orçamento público: PPA, LDO, LOA (CF/1988); Títulos I, IV, V e VI da Lei 4.320/1964',
+      'Leis de Créditos Adicionais; PPA: estrutura, base legal, objetivos, conteúdo, tipos de programas',
+      'LDO: objetivos, Anexos de Metas e Riscos Fiscais, limitação de empenho',
+      'Classificações orçamentárias: despesa (institucional, funcional, programática, pela natureza) e receita',
+      'Ciclo orçamentário: elaboração, votação e aprovação',
+      'Execução orçamentária e financeira: estágios, programação de desembolso, mecanismos retificadores',
+      'Conta Única do Tesouro Nacional; Lei 10.180/2001',
+      'Déficit público; financiamento; sustentabilidade fiscal; NFSP: resultado primário e nominal',
+      'Lei Complementar 101/2000: princípios, objetivos, planejamento, transparência, prestação de contas',
+    ]},
+  ];
+
+  editalCGU.forEach(({mat,bloco,questoes,peso,horas,qCiclo,tops})=>{
+    S.edital.push({id:uid(),tipo:'mat',nome:mat});
+    tops.forEach(t=>S.edital.push({id:uid(),tipo:'topico',matNome:mat,nome:t,metodo:'PDF',nota:'',acertosT:0,errosT:0,acertosB:0,errosB:0,teoriaOk:false}));
+    S.metasByMat[mat]={dif:'2',nivel:'Iniciante',metodo:'PDF',questoes,peso,horas,qCiclo,bloco};
+  });
+  S.metas={totalQuestoes:110,dataProva:''};
+  S.provasFazer=[{data:'2022-03-20',situacao:'Realizada',orgao:'CGU',cargo:'AFFC - Auditoria e Fiscalização',nivel:'Superior',banca:'FGV',prazoInsc:'2022-02-01',prazoPag:'2022-02-02',pago:true}];
+    save();
+    return true;
+  }
+  return false;
+}
+
+// ── BOOT ──
+load();
+if(S.theme){document.documentElement.setAttribute('data-theme',S.theme);document.getElementById('theme-btn').textContent=S.theme==='light'?'🌙 Modo escuro':'☀️ Modo claro'}
+document.getElementById('h-data').value=getToday();
+populateSelects();
+renderAll();
+</script>
+</body>
+</html>
